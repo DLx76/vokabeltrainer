@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Oberstufen-Vokabeltrainer</title>
     <style>
         :root {
@@ -16,28 +16,33 @@
             --text-light: #94a3b8;
             --border: #334155;
         }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 16px;
+            padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 16px) 16px;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            box-sizing: border-box;
+            height: 100dvh; /* Perfekt für moderne Android/Pixel Viewports */
+            overflow: hidden;
         }
         header {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
         }
         h1 {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             margin: 0 0 2px 0;
             letter-spacing: -0.025em;
         }
         .subtitle {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
         }
         .container {
@@ -48,38 +53,41 @@
             max-width: 480px;
             margin: 0 auto;
             width: 100%;
-            box-sizing: border-box;
+            height: 100%;
+            overflow: hidden;
         }
         .meta-info {
             display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
             color: var(--text-light);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            flex-shrink: 0;
         }
 
-        /* 3D FLIP CARD CONTAINER */
+        /* 3D FLIP CARD CONTAINER - Optimiert für Pixel GPUs */
         .card-scene {
-            perspective: 1000px;
+            perspective: 1200px;
             width: 100%;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
+            min-height: 0; /* Wichtig für Flexbox-Kollaps-Vermeidung */
         }
         .flashcard {
             width: 100%;
-            flex-grow: 1;
-            min-height: 280px;
+            height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
             cursor: pointer;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+            will-change: transform;
         }
         .flashcard.is-flipped {
             transform: rotateY(180deg);
@@ -92,38 +100,39 @@
             -webkit-backface-visibility: hidden;
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 24px;
-            box-sizing: border-box;
+            padding: 20px;
+            overflow-y: auto;
         }
         .card-back {
             transform: rotateY(180deg);
-            background: #1e1b4b;
-            border-color: #312e81;
+            background: #171f33;
+            border-color: #3b82f644;
         }
 
         .card-prompt {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .card-question {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
             line-height: 1.4;
             color: var(--text);
             margin: auto 0;
         }
         .card-hint {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
             text-align: center;
-            margin-top: 12px;
+            margin-top: 8px;
+            flex-shrink: 0;
         }
 
         /* OPTIONS LIST ON BACK */
@@ -132,16 +141,20 @@
             flex-direction: column;
             gap: 8px;
             margin: auto 0;
+            width: 100%;
         }
         .option-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px 14px;
             font-size: 0.9rem;
             text-align: left;
             color: var(--text);
-            transition: all 0.2s;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .option-item:active {
+            background: rgba(255, 255, 255, 0.1);
         }
         .option-item.correct {
             background: rgba(16, 185, 129, 0.2);
@@ -159,37 +172,35 @@
         .action-area {
             display: flex;
             gap: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
         }
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             padding: 14px;
             font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             flex: 1;
-            transition: background 0.2s, transform 0.1s;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            text-align: center;
         }
         .btn:active {
             transform: scale(0.98);
         }
-        .btn-secondary {
-            background: #334155;
-            box-shadow: none;
-        }
-        .btn-success { background: var(--success); }
-        .btn-error { background: var(--error); }
+        .btn-success { background: var(--success); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-error { background: var(--error); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
         .management-section {
             border-top: 1px solid var(--border);
-            padding-top: 12px;
+            padding-top: 10px;
             display: flex;
             flex-direction: column;
             gap: 6px;
+            flex-shrink: 0;
         }
         .row {
             display: flex;
@@ -197,30 +208,30 @@
         }
         .mgmt-btn {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.04);
             color: var(--text-light);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 6px;
+            border-radius: 8px;
+            padding: 8px;
             font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
         }
-        .mgmt-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .mgmt-btn:active {
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Englisch-Gehirntraining</h1>
-        <div class="subtitle">Smart Spaced Repetition • Modern Edition</div>
-    </header>
-
     <div class="container">
-        <div id="quiz-view">
+        <header>
+            <h1>Englisch-Gehirntraining</h1>
+            <div class="subtitle">Smart Spaced Repetition • Pixel Edition</div>
+        </header>
+
+        <div id="quiz-view" style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
             <div class="meta-info">
                 <span id="progress-indicator">Karte 1 von 10</span>
                 <span id="box-indicator">Level 1</span>
@@ -242,18 +253,18 @@
                             <div class="card-prompt">Optionen & Lösung</div>
                             <div class="options-list" id="back-options"></div>
                         </div>
-                        <div class="card-hint" id="feedback-hint">Bewertung wählen 👇</div>
+                        <div class="card-hint" id="feedback-hint">Antwort wählen 👇</div>
                     </div>
                 </div>
             </div>
 
             <div class="action-area" id="action-buttons" style="display: none;">
-                <button class="btn btn-error" onclick="rateAnswer(false)">❌ Noch mal (Level 1)</button>
-                <button class="btn btn-success" onclick="rateAnswer(true)">✔ Gewusst (Weiter)</button>
+                <button class="btn btn-error" onclick="rateAnswer(false)">❌ Nochmal</button>
+                <button class="btn btn-success" onclick="rateAnswer(true)">✔ Gewusst</button>
             </div>
         </div>
 
-        <div id="finish-view" style="display: none; text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+        <div id="finish-view" style="display: none; text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); margin: auto 0;">
             <h2>Runde durchgespielt! 🎯</h2>
             <p id="session-stats" style="margin: 15px 0; color: var(--text-light); font-size: 0.95rem;"></p>
             <button class="btn" onclick="startSession()">Neue Runde starten</button>
@@ -291,10 +302,10 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v4');
+            const savedVocab = localStorage.getItem('vocab_data_v5');
             if (savedVocab) { try { vocabulary = JSON.parse(savedVocab); } catch(e) {} }
 
-            const savedProg = localStorage.getItem('vocab_progress_v4');
+            const savedProg = localStorage.getItem('vocab_progress_v5');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -346,9 +357,8 @@
                 const div = document.createElement('div');
                 div.className = 'option-item';
                 div.innerText = opt;
-                // Klick auf eine Option auf der Rückseite wertet direkt aus
                 div.onclick = (e) => {
-                    e.stopPropagation(); // Verhindert Doppelt-Flip
+                    e.stopPropagation();
                     evaluateSelection(index);
                 };
                 backOptions.appendChild(div);
@@ -370,7 +380,6 @@
             if (answeredCurrent) return;
             answeredCurrent = true;
 
-            // Karte sicher umdrehen, falls sie noch vorn war
             if (!isFlipped) {
                 isFlipped = true;
                 document.getElementById('flashcard').classList.add('is-flipped');
@@ -392,14 +401,12 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
 
-            // Zeige Aktion-Buttons (Weiter / Nochmal)
             document.getElementById('action-buttons').style.display = 'flex';
         }
 
         function rateAnswer(wasCorrect) {
-            // Falls über die großen Buttons unten gesteuert
             let vocabItem = vocabulary.find(v => v.id === currentCard.id);
             if (wasCorrect) {
                 if (vocabItem.level < 3) vocabItem.level++;
@@ -408,7 +415,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -437,7 +444,7 @@
             reader.onload = function(e) {
                 try {
                     userProgress = JSON.parse(e.target.result);
-                    localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
+                    localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
                     vocabulary.forEach(item => {
                         if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                     });
@@ -457,7 +464,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab)) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v4', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v5', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
