@@ -6,14 +6,15 @@
     <title>Oberstufen-Vokabeltrainer</title>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #16a34a;
-            --error: #dc2626;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --text-light: #64748b;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --error: #ef4444;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --text-light: #94a3b8;
+            --border: #334155;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -28,26 +29,23 @@
         }
         header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         h1 {
-            font-size: 1.25rem;
-            margin: 0 0 4px 0;
+            font-size: 1.2rem;
+            margin: 0 0 2px 0;
+            letter-spacing: -0.025em;
         }
         .subtitle {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-light);
         }
         .container {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            max-width: 500px;
+            max-width: 480px;
             margin: 0 auto;
             width: 100%;
             box-sizing: border-box;
@@ -55,92 +53,162 @@
         .meta-info {
             display: flex;
             justify-content: space-between;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--text-light);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .question-box {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-        .options {
+
+        /* 3D FLIP CARD CONTAINER */
+        .card-scene {
+            perspective: 1000px;
+            width: 100%;
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
-        .option-btn {
-            background: #f1f5f9;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 14px 16px;
-            text-align: left;
-            font-size: 0.95rem;
-            color: var(--text);
+        .flashcard {
+            width: 100%;
+            flex-grow: 1;
+            min-height: 280px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
             cursor: pointer;
-            transition: all 0.2s ease;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
         }
-        .option-btn:active {
-            transform: scale(0.98);
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
         }
-        .option-btn.correct {
-            background: #dcfce7;
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+            background: #1e1b4b;
+            border-color: #312e81;
+        }
+
+        .card-prompt {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .card-question {
+            font-size: 1.25rem;
+            font-weight: 600;
+            line-height: 1.4;
+            color: var(--text);
+            margin: auto 0;
+        }
+        .card-hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        /* OPTIONS LIST ON BACK */
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: auto 0;
+        }
+        .option-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            text-align: left;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        .option-item.correct {
+            background: rgba(16, 185, 129, 0.2);
             border-color: var(--success);
-            color: #166534;
+            color: #34d399;
             font-weight: 600;
         }
-        .option-btn.incorrect {
-            background: #fee2e2;
+        .option-item.incorrect {
+            background: rgba(239, 68, 68, 0.2);
             border-color: var(--error);
-            color: #991b1b;
+            color: #f87171;
         }
-        .feedback {
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            min-height: 30px;
-            font-weight: 500;
+
+        /* CONTROLS & BUTTONS */
+        .action-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
         }
-        .action-btn {
+        .btn {
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 14px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
-            margin-bottom: 10px;
+            flex: 1;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
         }
-        .action-btn:active {
-            background: var(--primary-dark);
+        .btn:active {
+            transform: scale(0.98);
         }
+        .btn-secondary {
+            background: #334155;
+            box-shadow: none;
+        }
+        .btn-success { background: var(--success); }
+        .btn-error { background: var(--error); }
+
         .management-section {
-            margin-top: 20px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            padding-top: 12px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
         .row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
         .mgmt-btn {
             flex: 1;
-            background: #e2e8f0;
-            color: var(--text);
-            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
+            border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 8px;
-            font-size: 0.75rem;
+            padding: 6px;
+            font-size: 0.7rem;
             font-weight: 600;
             cursor: pointer;
+        }
+        .mgmt-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
         }
     </style>
 </head>
@@ -148,29 +216,51 @@
 
     <header>
         <h1>Englisch-Gehirntraining</h1>
-        <div class="subtitle">Smart Spaced Repetition (Mobil-optimiert)</div>
+        <div class="subtitle">Smart Spaced Repetition • Modern Edition</div>
     </header>
 
     <div class="container">
         <div id="quiz-view">
             <div class="meta-info">
-                <span id="progress-indicator">Karte 1</span>
+                <span id="progress-indicator">Karte 1 von 10</span>
                 <span id="box-indicator">Level 1</span>
             </div>
-            <div class="question-box" id="question-text">Lade Vokabeln...</div>
-            <div class="options" id="options-container"></div>
-            <div class="feedback" id="feedback-text"></div>
-            <button class="action-btn" id="next-btn" style="display: none;" onclick="nextCard()">Nächste Karte</button>
+
+            <div class="card-scene">
+                <div class="flashcard" id="flashcard" onclick="flipCard()">
+                    <!-- VORDERSEITE -->
+                    <div class="card-face card-front">
+                        <div>
+                            <div class="card-prompt">Fragestellung</div>
+                            <div class="card-question" id="front-question">Lade...</div>
+                        </div>
+                        <div class="card-hint">Antippen zum Umdrehen 👆</div>
+                    </div>
+                    <!-- RÜCKSEITE -->
+                    <div class="card-face card-back">
+                        <div>
+                            <div class="card-prompt">Optionen & Lösung</div>
+                            <div class="options-list" id="back-options"></div>
+                        </div>
+                        <div class="card-hint" id="feedback-hint">Bewertung wählen 👇</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-area" id="action-buttons" style="display: none;">
+                <button class="btn btn-error" onclick="rateAnswer(false)">❌ Noch mal (Level 1)</button>
+                <button class="btn btn-success" onclick="rateAnswer(true)">✔ Gewusst (Weiter)</button>
+            </div>
         </div>
 
-        <div id="finish-view" style="display: none; text-align: center; padding: 20px 0;">
-            <h2>Runde geschafft! 🎯</h2>
-            <p id="session-stats" style="margin: 20px 0; color: var(--text-light);"></p>
-            <button class="action-btn" onclick="restartSession()">Noch eine Runde üben</button>
+        <div id="finish-view" style="display: none; text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border);">
+            <h2>Runde durchgespielt! 🎯</h2>
+            <p id="session-stats" style="margin: 15px 0; color: var(--text-light); font-size: 0.95rem;"></p>
+            <button class="btn" onclick="startSession()">Neue Runde starten</button>
         </div>
 
         <div class="management-section">
-            <button class="mgmt-btn" style="background: #dbeafe; color: #1e40af;" onclick="document.getElementById('import-words-file').click()">📚 Wörterbuch aktualisieren (words.json)</button>
+            <button class="mgmt-btn" style="background: rgba(79, 70, 229, 0.15); color: #818cf8; border-color: rgba(79, 70, 229, 0.3);" onclick="document.getElementById('import-words-file').click()">📚 Wörterbuch aktualisieren (words.json)</button>
             <div class="row">
                 <button class="mgmt-btn" onclick="exportProgress()">💾 Lernstand sichern</button>
                 <button class="mgmt-btn" onclick="document.getElementById('import-prog-file').click()">📂 Lernstand laden</button>
@@ -181,7 +271,6 @@
     </div>
 
     <script>
-        // Start-Wörterbuch (wird über JSON-Import nahtlos erweitert)
         let vocabulary = [
             { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
             { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
@@ -198,22 +287,16 @@
         let currentIndex = 0;
         let sessionCorrect = 0;
         let currentCard = null;
-        let answered = false;
+        let isFlipped = false;
+        let answeredCurrent = false;
 
         function initApp() {
-            // Lokale gespeicherte Vokabelliste laden (falls vorhanden)
-            const savedVocab = localStorage.getItem('vocab_data_v3');
-            if (savedVocab) {
-                try { vocabulary = JSON.parse(savedVocab); } catch(e) {}
-            }
+            const savedVocab = localStorage.getItem('vocab_data_v4');
+            if (savedVocab) { try { vocabulary = JSON.parse(savedVocab); } catch(e) {} }
 
-            // Lernfortschritt laden
-            const savedProg = localStorage.getItem('vocab_progress_v3');
-            if (savedProg) {
-                try { userProgress = JSON.parse(savedProg); } catch(e) {}
-            }
+            const savedProg = localStorage.getItem('vocab_progress_v4');
+            if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            // Levels zuweisen
             vocabulary.forEach(item => {
                 item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
             });
@@ -225,23 +308,27 @@
             sessionCorrect = 0;
             activeQueue = [];
             vocabulary.forEach(item => {
-                let weight = 4 - item.level; // Level 1 kommt öfter dran
+                let weight = 4 - item.level;
                 if (weight < 1) weight = 1;
                 for (let i = 0; i < weight; i++) {
                     activeQueue.push({...item});
                 }
             });
             activeQueue.sort(() => Math.random() - 0.5);
-            if (activeQueue.length > 12) activeQueue = activeQueue.slice(0, 12);
+            if (activeQueue.length > 10) activeQueue = activeQueue.slice(0, 10);
 
             currentIndex = 0;
-            document.getElementById('quiz-view').style.display = 'block';
+            document.getElementById('quiz-view').style.display = 'flex';
             document.getElementById('finish-view').style.display = 'none';
             loadCard();
         }
 
         function loadCard() {
-            answered = false;
+            isFlipped = false;
+            answeredCurrent = false;
+            document.getElementById('flashcard').classList.remove('is-flipped');
+            document.getElementById('action-buttons').style.display = 'none';
+
             if (currentIndex >= activeQueue.length) {
                 showFinish();
                 return;
@@ -249,50 +336,80 @@
 
             currentCard = activeQueue[currentIndex];
             document.getElementById('progress-indicator').innerText = `Karte ${currentIndex + 1} von ${activeQueue.length}`;
-            document.getElementById('box-indicator').innerText = `Level: ${currentCard.level} / 3`;
-            document.getElementById('question-text').innerText = currentCard.q;
+            document.getElementById('box-indicator').innerText = `Level ${currentCard.level} / 3`;
+            document.getElementById('front-question').innerText = currentCard.q;
 
-            const optionsContainer = document.getElementById('options-container');
-            optionsContainer.innerHTML = '';
+            const backOptions = document.getElementById('back-options');
+            backOptions.innerHTML = '';
 
             currentCard.options.forEach((opt, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = () => selectAnswer(index);
-                optionsContainer.appendChild(btn);
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.innerText = opt;
+                // Klick auf eine Option auf der Rückseite wertet direkt aus
+                div.onclick = (e) => {
+                    e.stopPropagation(); // Verhindert Doppelt-Flip
+                    evaluateSelection(index);
+                };
+                backOptions.appendChild(div);
             });
-
-            document.getElementById('feedback-text').innerText = '';
-            document.getElementById('next-btn').style.display = 'none';
         }
 
-        function selectAnswer(selectedIndex) {
-            if (answered) return;
-            answered = true;
+        function flipCard() {
+            if (answeredCurrent) return;
+            const card = document.getElementById('flashcard');
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                card.classList.add('is-flipped');
+            } else {
+                card.classList.remove('is-flipped');
+            }
+        }
 
-            const buttons = document.getElementById('options-container').children;
+        function evaluateSelection(selectedIndex) {
+            if (answeredCurrent) return;
+            answeredCurrent = true;
+
+            // Karte sicher umdrehen, falls sie noch vorn war
+            if (!isFlipped) {
+                isFlipped = true;
+                document.getElementById('flashcard').classList.add('is-flipped');
+            }
+
+            const options = document.getElementById('back-options').children;
             let vocabItem = vocabulary.find(v => v.id === currentCard.id);
 
             if (selectedIndex === currentCard.correct) {
-                buttons[selectedIndex].classList.add('correct');
-                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--success);">Richtig! Verankert. 🎯</span>';
+                options[selectedIndex].classList.add('correct');
+                document.getElementById('feedback-hint').innerText = 'Richtig verankert! ✨';
                 sessionCorrect++;
                 if (vocabItem.level < 3) vocabItem.level++;
             } else {
-                buttons[selectedIndex].classList.add('incorrect');
-                buttons[currentCard.correct].classList.add('correct');
-                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--error);">Nicht ganz. Das wandert nach hinten!</span>';
+                options[selectedIndex].classList.add('incorrect');
+                options[currentCard.correct].classList.add('correct');
+                document.getElementById('feedback-hint').innerText = 'Nicht ganz – wandert in die Wiederholung.';
                 vocabItem.level = 1;
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v3', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
 
-            document.getElementById('next-btn').style.display = 'block';
+            // Zeige Aktion-Buttons (Weiter / Nochmal)
+            document.getElementById('action-buttons').style.display = 'flex';
         }
 
-        function nextCard() {
+        function rateAnswer(wasCorrect) {
+            // Falls über die großen Buttons unten gesteuert
+            let vocabItem = vocabulary.find(v => v.id === currentCard.id);
+            if (wasCorrect) {
+                if (vocabItem.level < 3) vocabItem.level++;
+                sessionCorrect++;
+            } else {
+                vocabItem.level = 1;
+            }
+            userProgress[vocabItem.id] = vocabItem.level;
+            localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
+
             currentIndex++;
             loadCard();
         }
@@ -300,14 +417,8 @@
         function showFinish() {
             document.getElementById('quiz-view').style.display = 'none';
             document.getElementById('finish-view').style.display = 'block';
-            document.getElementById('session-stats').innerText = `Du hast ${sessionCorrect} von ${activeQueue.length} Karten gemeistert!`;
+            document.getElementById('session-stats').innerText = `Du hast ${sessionCorrect} von ${activeQueue.length} Karten erfolgreich gemeistert!`;
         }
-
-        function restartSession() {
-            startSession();
-        }
-
-        // --- EXPORT & IMPORT LOGIK ---
 
         function exportProgress() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userProgress));
@@ -326,15 +437,13 @@
             reader.onload = function(e) {
                 try {
                     userProgress = JSON.parse(e.target.result);
-                    localStorage.setItem('vocab_progress_v3', JSON.stringify(userProgress));
+                    localStorage.setItem('vocab_progress_v4', JSON.stringify(userProgress));
                     vocabulary.forEach(item => {
                         if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                     });
                     alert("Lernstand erfolgreich geladen!");
                     startSession();
-                } catch(err) {
-                    alert("Fehler beim Einlesen der Backup-Datei.");
-                }
+                } catch(err) { alert("Fehler beim Einlesen."); }
             };
             reader.readAsText(file);
         }
@@ -348,22 +457,14 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab)) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v3', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v4', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
-                            if (userProgress[item.id] !== undefined) {
-                                item.level = userProgress[item.id];
-                            } else {
-                                item.level = 1;
-                            }
+                            item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
-                        alert(`Wörterbuch erfolgreich aktualisiert! (${vocabulary.length} Vokabeln geladen)`);
+                        alert(`Wörterbuch aktualisiert! (${vocabulary.length} Vokabeln)`);
                         startSession();
-                    } else {
-                        alert("Ungültiges Format in der words.json.");
                     }
-                } catch(err) {
-                    alert("Fehler beim Einlesen der words.json.");
-                }
+                } catch(err) { alert("Fehler beim Laden der words.json."); }
             };
             reader.readAsText(file);
         }
