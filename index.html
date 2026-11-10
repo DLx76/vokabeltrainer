@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oberstufen-Vokabeltrainer (Englisch)</title>
+    <title>Oberstufen-Vokabeltrainer</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -28,12 +28,11 @@
         }
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         h1 {
             font-size: 1.25rem;
             margin: 0 0 4px 0;
-            color: var(--text);
         }
         .subtitle {
             font-size: 0.85rem;
@@ -43,7 +42,7 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -53,13 +52,14 @@
             width: 100%;
             box-sizing: border-box;
         }
-        .progress-bar {
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
             font-size: 0.8rem;
             color: var(--text-light);
             margin-bottom: 12px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         .question-box {
             font-size: 1.1rem;
@@ -83,7 +83,6 @@
             color: var(--text);
             cursor: pointer;
             transition: all 0.2s ease;
-            box-sizing: border-box;
         }
         .option-btn:active {
             transform: scale(0.98);
@@ -101,12 +100,11 @@
         }
         .feedback {
             font-size: 0.9rem;
-            margin-top: 10px;
             margin-bottom: 15px;
-            min-height: 40px;
+            min-height: 30px;
             font-weight: 500;
         }
-        .next-btn {
+        .action-btn {
             background: var(--primary);
             color: white;
             border: none;
@@ -116,16 +114,33 @@
             font-weight: 600;
             cursor: pointer;
             width: 100%;
-            transition: background 0.2s;
+            margin-bottom: 10px;
         }
-        .next-btn:active {
+        .action-btn:active {
             background: var(--primary-dark);
         }
-        .stats {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 15px;
+        .management-section {
+            margin-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+        .mgmt-btn {
+            flex: 1;
+            background: #e2e8f0;
+            color: var(--text);
+            border: none;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -133,177 +148,227 @@
 
     <header>
         <h1>Englisch-Gehirntraining</h1>
-        <div class="subtitle">Oberstufe • Wortschatz & Stolpersteine</div>
+        <div class="subtitle">Smart Spaced Repetition (Mobil-optimiert)</div>
     </header>
 
-    <div class="container" id="app-container">
+    <div class="container">
         <div id="quiz-view">
-            <div class="progress-bar" id="progress-indicator">Frage 1 von 8</div>
-            <div class="question-box" id="question-text">Lade Frage...</div>
+            <div class="meta-info">
+                <span id="progress-indicator">Karte 1</span>
+                <span id="box-indicator">Level 1</span>
+            </div>
+            <div class="question-box" id="question-text">Lade Vokabeln...</div>
             <div class="options" id="options-container"></div>
             <div class="feedback" id="feedback-text"></div>
-            <button class="next-btn" id="next-btn" style="display: none;" onclick="nextQuestion()">Nächste Frage</button>
+            <button class="action-btn" id="next-btn" style="display: none;" onclick="nextCard()">Nächste Karte</button>
         </div>
-        
-        <div id="result-view" style="display: none; text-align: center; padding: 20px 0;">
-            <h2>Runde beendet! 🎉</h2>
-            <p id="score-text" style="font-size: 1.1rem; margin: 20px 0;"></p>
-            <button class="next-btn" onclick="restartQuiz()">Noch einmal üben</button>
+
+        <div id="finish-view" style="display: none; text-align: center; padding: 20px 0;">
+            <h2>Runde geschafft! 🎯</h2>
+            <p id="session-stats" style="margin: 20px 0; color: var(--text-light);"></p>
+            <button class="action-btn" onclick="restartSession()">Noch eine Runde üben</button>
+        </div>
+
+        <div class="management-section">
+            <button class="mgmt-btn" style="background: #dbeafe; color: #1e40af;" onclick="document.getElementById('import-words-file').click()">📚 Wörterbuch aktualisieren (words.json)</button>
+            <div class="row">
+                <button class="mgmt-btn" onclick="exportProgress()">💾 Lernstand sichern</button>
+                <button class="mgmt-btn" onclick="document.getElementById('import-prog-file').click()">📂 Lernstand laden</button>
+            </div>
+            <input type="file" id="import-words-file" style="display: none" onchange="importWordsJSON(event)">
+            <input type="file" id="import-prog-file" style="display: none" onchange="importProgressJSON(event)">
         </div>
     </div>
 
     <script>
-        const questions = [
-            {
-                q: "Was bedeutet das Wort „actually“ im Englischen?",
-                options: [
-                    "aktuell, momentan",
-                    "tatsächlich, eigentlich",
-                    "amtlich, offiziell"
-                ],
-                correct: 1
-            },
-            {
-                q: "Was bedeutet das Wort „sensible“?",
-                options: [
-                    "sensibel, empfindsam",
-                    "vernünftig, sinnvoll",
-                    "spürbar, fühlbar"
-                ],
-                correct: 1
-            },
-            {
-                q: "Wie übersetzt man das Verb „to imply“ am präzisesten?",
-                options: [
-                    "annehmen, vermuten",
-                    "andeuten, implizieren",
-                    "widerspiegeln"
-                ],
-                correct: 1
-            },
-            {
-                q: "Wie drückt man am besten aus: „Eigentlich hatte ich etwas anderes im Sinn“?",
-                options: [
-                    "Actually, I had something else in mind.",
-                    "Actually, I had planned this otherwise.",
-                    "Currently, I had another idea."
-                ],
-                correct: 0
-            },
-            {
-                q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?",
-                options: [
-                    "We need to discuss about this issue.",
-                    "We need to discuss this issue.",
-                    "We need to discuss about this."
-                ],
-                correct: 1
-            },
-            {
-                q: "Wie heißt es korrekt nach „to look forward to“?",
-                options: [
-                    "I am looking forward to see you.",
-                    "I am looking forward to seeing you.",
-                    "I am looking forward see you."
-                ],
-                correct: 1
-            },
-            {
-                q: "Wie unterscheidet sich „economic“ von „economical“?",
-                options: [
-                    "Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen",
-                    "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch",
-                    "Es gibt keinen Unterschied, die Wörter sind Synonyme."
-                ],
-                correct: 1
-            },
-            {
-                q: "Was bedeutet das englische Wort „currently“?",
-                options: [
-                    "aktuell / derzeit",
-                    "eigentlich",
-                    "konsequent"
-                ],
-                correct: 0
-            }
+        // Start-Wörterbuch (wird über JSON-Import nahtlos erweitert)
+        let vocabulary = [
+            { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
+            { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
+            { id: 3, q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1 },
+            { id: 4, q: "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", options: ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], correct: 0 },
+            { id: 5, q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1 },
+            { id: 6, q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1 },
+            { id: 7, q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1 },
+            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0 }
         ];
 
-        let currentQuestion = 0;
-        let score = 0;
+        let userProgress = {}; 
+        let activeQueue = [];
+        let currentIndex = 0;
+        let sessionCorrect = 0;
+        let currentCard = null;
         let answered = false;
 
-        function loadQuestion() {
+        function initApp() {
+            // Lokale gespeicherte Vokabelliste laden (falls vorhanden)
+            const savedVocab = localStorage.getItem('vocab_data_v3');
+            if (savedVocab) {
+                try { vocabulary = JSON.parse(savedVocab); } catch(e) {}
+            }
+
+            // Lernfortschritt laden
+            const savedProg = localStorage.getItem('vocab_progress_v3');
+            if (savedProg) {
+                try { userProgress = JSON.parse(savedProg); } catch(e) {}
+            }
+
+            // Levels zuweisen
+            vocabulary.forEach(item => {
+                item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
+            });
+
+            startSession();
+        }
+
+        function startSession() {
+            sessionCorrect = 0;
+            activeQueue = [];
+            vocabulary.forEach(item => {
+                let weight = 4 - item.level; // Level 1 kommt öfter dran
+                if (weight < 1) weight = 1;
+                for (let i = 0; i < weight; i++) {
+                    activeQueue.push({...item});
+                }
+            });
+            activeQueue.sort(() => Math.random() - 0.5);
+            if (activeQueue.length > 12) activeQueue = activeQueue.slice(0, 12);
+
+            currentIndex = 0;
+            document.getElementById('quiz-view').style.display = 'block';
+            document.getElementById('finish-view').style.display = 'none';
+            loadCard();
+        }
+
+        function loadCard() {
             answered = false;
-            const q = questions[currentQuestion];
-            document.getElementById('progress-indicator').innerText = `Frage ${currentQuestion + 1} von ${questions.length}`;
-            document.getElementById('question-text').innerText = q.q;
-            
+            if (currentIndex >= activeQueue.length) {
+                showFinish();
+                return;
+            }
+
+            currentCard = activeQueue[currentIndex];
+            document.getElementById('progress-indicator').innerText = `Karte ${currentIndex + 1} von ${activeQueue.length}`;
+            document.getElementById('box-indicator').innerText = `Level: ${currentCard.level} / 3`;
+            document.getElementById('question-text').innerText = currentCard.q;
+
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
-            
-            q.options.forEach((opt, index) => {
+
+            currentCard.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = opt;
-                btn.onclick = () => selectOption(index);
+                btn.onclick = () => selectAnswer(index);
                 optionsContainer.appendChild(btn);
             });
-            
+
             document.getElementById('feedback-text').innerText = '';
             document.getElementById('next-btn').style.display = 'none';
         }
 
-        function selectOption(selectedIndex) {
+        function selectAnswer(selectedIndex) {
             if (answered) return;
             answered = true;
-            
-            const q = questions[currentQuestion];
+
             const buttons = document.getElementById('options-container').children;
-            
-            if (selectedIndex === q.correct) {
+            let vocabItem = vocabulary.find(v => v.id === currentCard.id);
+
+            if (selectedIndex === currentCard.correct) {
                 buttons[selectedIndex].classList.add('correct');
-                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--success);">Richtig! Hervorragend verknüpft. 🎯</span>';
-                score++;
+                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--success);">Richtig! Verankert. 🎯</span>';
+                sessionCorrect++;
+                if (vocabItem.level < 3) vocabItem.level++;
             } else {
                 buttons[selectedIndex].classList.add('incorrect');
-                buttons[q.correct].classList.add('correct');
-                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--error);">Nicht ganz. Die grün markierte Option ist korrekt.</span>';
+                buttons[currentCard.correct].classList.add('correct');
+                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--error);">Nicht ganz. Das wandert nach hinten!</span>';
+                vocabItem.level = 1;
             }
-            
-            if (currentQuestion < questions.length - 1) {
-                document.getElementById('next-btn').style.display = 'block';
-            } else {
-                document.getElementById('next-btn').innerText = 'Ergebnis anzeigen';
-                document.getElementById('next-btn').style.display = 'block';
-            }
+
+            userProgress[vocabItem.id] = vocabItem.level;
+            localStorage.setItem('vocab_progress_v3', JSON.stringify(userProgress));
+
+            document.getElementById('next-btn').style.display = 'block';
         }
 
-        function nextQuestion() {
-            currentQuestion++;
-            if (currentQuestion < questions.length) {
-                document.getElementById('next-btn').innerText = 'Nächste Frage';
-                loadQuestion();
-            } else {
-                showResults();
-            }
+        function nextCard() {
+            currentIndex++;
+            loadCard();
         }
 
-        function showResults() {
+        function showFinish() {
             document.getElementById('quiz-view').style.display = 'none';
-            document.getElementById('result-view').style.display = 'block';
-            document.getElementById('score-text').innerText = `Du hast ${score} von ${questions.length} Fragen richtig beantwortet!`;
+            document.getElementById('finish-view').style.display = 'block';
+            document.getElementById('session-stats').innerText = `Du hast ${sessionCorrect} von ${activeQueue.length} Karten gemeistert!`;
         }
 
-        function restartQuiz() {
-            currentQuestion = 0;
-            score = 0;
-            document.getElementById('result-view').style.display = 'none';
-            document.getElementById('quiz-view').style.display = 'block';
-            loadQuestion();
+        function restartSession() {
+            startSession();
         }
 
-        // Init
-        loadQuestion();
+        // --- EXPORT & IMPORT LOGIK ---
+
+        function exportProgress() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userProgress));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "lernstand_backup_" + new Date().toISOString().slice(0,10) + ".json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importProgressJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    userProgress = JSON.parse(e.target.result);
+                    localStorage.setItem('vocab_progress_v3', JSON.stringify(userProgress));
+                    vocabulary.forEach(item => {
+                        if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
+                    });
+                    alert("Lernstand erfolgreich geladen!");
+                    startSession();
+                } catch(err) {
+                    alert("Fehler beim Einlesen der Backup-Datei.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function importWordsJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const newVocab = JSON.parse(e.target.result);
+                    if (Array.isArray(newVocab)) {
+                        vocabulary = newVocab;
+                        localStorage.setItem('vocab_data_v3', JSON.stringify(vocabulary));
+                        vocabulary.forEach(item => {
+                            if (userProgress[item.id] !== undefined) {
+                                item.level = userProgress[item.id];
+                            } else {
+                                item.level = 1;
+                            }
+                        });
+                        alert(`Wörterbuch erfolgreich aktualisiert! (${vocabulary.length} Vokabeln geladen)`);
+                        startSession();
+                    } else {
+                        alert("Ungültiges Format in der words.json.");
+                    }
+                } catch(err) {
+                    alert("Fehler beim Einlesen der words.json.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        initApp();
     </script>
 </body>
 </html>
