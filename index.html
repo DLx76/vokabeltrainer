@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oberstufen-Vokabeltrainer (Englisch)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --error: #dc2626;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 1.25rem;
+            margin: 0 0 4px 0;
+            color: var(--text);
+        }
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        .container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .progress-bar {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .question-box {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            background: #f1f5f9;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 0.95rem;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+        .option-btn.correct {
+            background: #dcfce7;
+            border-color: var(--success);
+            color: #166534;
+            font-weight: 600;
+        }
+        .option-btn.incorrect {
+            background: #fee2e2;
+            border-color: var(--error);
+            color: #991b1b;
+        }
+        .feedback {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            min-height: 40px;
+            font-weight: 500;
+        }
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .next-btn:active {
+            background: var(--primary-dark);
+        }
+        .stats {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Englisch-Gehirntraining</h1>
+        <div class="subtitle">Oberstufe • Wortschatz & Stolpersteine</div>
+    </header>
+
+    <div class="container" id="app-container">
+        <div id="quiz-view">
+            <div class="progress-bar" id="progress-indicator">Frage 1 von 8</div>
+            <div class="question-box" id="question-text">Lade Frage...</div>
+            <div class="options" id="options-container"></div>
+            <div class="feedback" id="feedback-text"></div>
+            <button class="next-btn" id="next-btn" style="display: none;" onclick="nextQuestion()">Nächste Frage</button>
+        </div>
+        
+        <div id="result-view" style="display: none; text-align: center; padding: 20px 0;">
+            <h2>Runde beendet! 🎉</h2>
+            <p id="score-text" style="font-size: 1.1rem; margin: 20px 0;"></p>
+            <button class="next-btn" onclick="restartQuiz()">Noch einmal üben</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "Was bedeutet das Wort „actually“ im Englischen?",
+                options: [
+                    "aktuell, momentan",
+                    "tatsächlich, eigentlich",
+                    "amtlich, offiziell"
+                ],
+                correct: 1
+            },
+            {
+                q: "Was bedeutet das Wort „sensible“?",
+                options: [
+                    "sensibel, empfindsam",
+                    "vernünftig, sinnvoll",
+                    "spürbar, fühlbar"
+                ],
+                correct: 1
+            },
+            {
+                q: "Wie übersetzt man das Verb „to imply“ am präzisesten?",
+                options: [
+                    "annehmen, vermuten",
+                    "andeuten, implizieren",
+                    "widerspiegeln"
+                ],
+                correct: 1
+            },
+            {
+                q: "Wie drückt man am besten aus: „Eigentlich hatte ich etwas anderes im Sinn“?",
+                options: [
+                    "Actually, I had something else in mind.",
+                    "Actually, I had planned this otherwise.",
+                    "Currently, I had another idea."
+                ],
+                correct: 0
+            },
+            {
+                q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?",
+                options: [
+                    "We need to discuss about this issue.",
+                    "We need to discuss this issue.",
+                    "We need to discuss about this."
+                ],
+                correct: 1
+            },
+            {
+                q: "Wie heißt es korrekt nach „to look forward to“?",
+                options: [
+                    "I am looking forward to see you.",
+                    "I am looking forward to seeing you.",
+                    "I am looking forward see you."
+                ],
+                correct: 1
+            },
+            {
+                q: "Wie unterscheidet sich „economic“ von „economical“?",
+                options: [
+                    "Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen",
+                    "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch",
+                    "Es gibt keinen Unterschied, die Wörter sind Synonyme."
+                ],
+                correct: 1
+            },
+            {
+                q: "Was bedeutet das englische Wort „currently“?",
+                options: [
+                    "aktuell / derzeit",
+                    "eigentlich",
+                    "konsequent"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            answered = false;
+            const q = questions[currentQuestion];
+            document.getElementById('progress-indicator').innerText = `Frage ${currentQuestion + 1} von ${questions.length}`;
+            document.getElementById('question-text').innerText = q.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(index);
+                optionsContainer.appendChild(btn);
+            });
+            
+            document.getElementById('feedback-text').innerText = '';
+            document.getElementById('next-btn').style.display = 'none';
+        }
+
+        function selectOption(selectedIndex) {
+            if (answered) return;
+            answered = true;
+            
+            const q = questions[currentQuestion];
+            const buttons = document.getElementById('options-container').children;
+            
+            if (selectedIndex === q.correct) {
+                buttons[selectedIndex].classList.add('correct');
+                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--success);">Richtig! Hervorragend verknüpft. 🎯</span>';
+                score++;
+            } else {
+                buttons[selectedIndex].classList.add('incorrect');
+                buttons[q.correct].classList.add('correct');
+                document.getElementById('feedback-text').innerHTML = '<span style="color: var(--error);">Nicht ganz. Die grün markierte Option ist korrekt.</span>';
+            }
+            
+            if (currentQuestion < questions.length - 1) {
+                document.getElementById('next-btn').style.display = 'block';
+            } else {
+                document.getElementById('next-btn').innerText = 'Ergebnis anzeigen';
+                document.getElementById('next-btn').style.display = 'block';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < questions.length) {
+                document.getElementById('next-btn').innerText = 'Nächste Frage';
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('result-view').style.display = 'block';
+            document.getElementById('score-text').innerText = `Du hast ${score} von ${questions.length} Fragen richtig beantwortet!`;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('result-view').style.display = 'none';
+            document.getElementById('quiz-view').style.display = 'block';
+            loadQuestion();
+        }
+
+        // Init
+        loadQuestion();
+    </script>
+</body>
+</html>
