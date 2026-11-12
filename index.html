@@ -167,19 +167,54 @@
             border-color: #3b82f644;
         }
 
+        .card-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
         .card-prompt {
             font-size: 0.8rem;
             color: var(--text-light);
             text-transform: uppercase;
-            margin-bottom: 6px;
             letter-spacing: 0.03em;
         }
+        
+        /* AUDIO BUTTON */
+        .audio-btn {
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(79, 70, 229, 0.4);
+            color: #818cf8;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background 0.15s;
+        }
+        .audio-btn:active {
+            transform: scale(0.92);
+            background: rgba(79, 70, 229, 0.4);
+        }
+
         .card-question {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 600;
             line-height: 1.4;
             color: var(--text);
             margin: auto 0;
+        }
+        .card-example {
+            font-size: 0.9rem;
+            color: #a5b4fc;
+            font-style: italic;
+            margin-top: 10px;
+            border-left: 3px solid var(--primary);
+            padding-left: 8px;
         }
         .card-hint {
             font-size: 0.82rem;
@@ -276,7 +311,7 @@
         .btn-success { background: var(--success); }
         .btn-error { background: var(--error); }
 
-        /* DAUMENFREUNDLICHE UNTERE KACHELN (IMPORT / EXPORT) */
+        /* MANAGEMENT */
         .management-section {
             border-top: 1px solid var(--border);
             padding-top: 10px;
@@ -285,10 +320,7 @@
             gap: 8px;
             flex-shrink: 0;
         }
-        .row { 
-            display: flex; 
-            gap: 8px; 
-        }
+        .row { display: flex; gap: 8px; }
         .mgmt-btn {
             flex: 1;
             background: rgba(255, 255, 255, 0.05);
@@ -350,15 +382,22 @@
                 <div class="flashcard" id="flashcard" onclick="flipCard()">
                     <div class="card-face card-front">
                         <div>
-                            <div class="card-prompt">Fragestellung</div>
+                            <div class="card-header-row">
+                                <div class="card-prompt">Fragestellung</div>
+                                <button class="audio-btn" id="audio-front-btn" onclick="playAudio(event, 'front')">🔊</button>
+                            </div>
                             <div class="card-question" id="front-question">Lade...</div>
                         </div>
                         <div class="card-hint">Antippen zum Umdrehen 👆</div>
                     </div>
                     <div class="card-face card-back">
                         <div>
-                            <div class="card-prompt">Optionen & Lösung</div>
+                            <div class="card-header-row">
+                                <div class="card-prompt">Optionen & Beispielsatz</div>
+                                <button class="audio-btn" id="audio-back-btn" onclick="playAudio(event, 'back')">🔊</button>
+                            </div>
                             <div class="options-list" id="back-options"></div>
+                            <div class="card-example" id="card-example-text"></div>
                         </div>
                         <div class="card-hint" id="feedback-hint">Antwort wählen 👇</div>
                     </div>
@@ -383,7 +422,7 @@
             <div class="dictionary-list" id="dictionary-container"></div>
         </div>
 
-        <!-- MANAGEMENT (DAUMENFREUNDLICHE KACHELN) -->
+        <!-- MANAGEMENT -->
         <div class="management-section">
             <button class="mgmt-btn mgmt-btn-primary" onclick="document.getElementById('import-words-file').click()">📚 words.json aktualisieren</button>
             <div class="row">
@@ -396,28 +435,28 @@
     </div>
 
     <script>
-        // Standard-Vokabeln & Satzbausteine (Stand: 20 Einträge)
+        // Standard-Vokabeln & Satzbausteine mit echten Beispielsätzen (Stand: 20 Einträge)
         let defaultVocabulary = [
-            { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
-            { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
-            { id: 3, q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1 },
-            { id: 4, q: "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", options: ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], correct: 0 },
-            { id: 5, q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1 },
-            { id: 6, q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1 },
-            { id: 7, q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1 },
-            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0 },
-            { id: 9, q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße, ungeprüfte Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1 },
-            { id: 10, q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0 },
-            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], correct: 1 },
-            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], correct: 0 },
-            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1 },
-            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1 },
-            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1 },
-            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0 },
-            { id: 17, q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0 },
-            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...“?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1 },
-            { id: 19, q: "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", options: ["To a certain extent...", "Up to a little limit...", "In some border..."], correct: 0 },
-            { id: 20, q: "Was bedeutet der Ausdruck „as opposed to...“?", options: ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], correct: 1 }
+            { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1, sentence: "Actually, I had something else in mind." },
+            { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1, sentence: "It was a very sensible decision to make." },
+            { id: 3, q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1, sentence: "His words seemed to imply some criticism." },
+            { id: 4, q: "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", options: ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], correct: 0, sentence: "Actually, I had something else in mind." },
+            { id: 5, q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1, sentence: "We need to discuss this important issue." },
+            { id: 6, q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1, sentence: "I am looking forward to seeing you soon." },
+            { id: 7, q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1, sentence: "This car is very economical on fuel." },
+            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0, sentence: "The market is currently prone to sudden changes." },
+            { id: 9, q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße, ungeprüfte Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1, sentence: "Experts argue that growth will continue." },
+            { id: 10, q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0, sentence: "It is widely assumed that prices will rise." },
+            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], correct: 1, sentence: "Communication is crucial for a team." },
+            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], correct: 0, sentence: "Due to technical issues, we delayed the launch." },
+            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1, sentence: "She worked hard and consequently succeeded." },
+            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1, sentence: "You should address this issue on time." },
+            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1, sentence: "This recent study sheds light on the causes." },
+            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0, sentence: "Complex systems are often prone to errors." },
+            { id: 17, q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0, sentence: "Provided that we address the issue, all will go well." },
+            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...`?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1, sentence: "Such changes are bound to be risky." },
+            { id: 19, q: "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", options: ["To a certain extent...", "Up to a little limit...", "In some border..."], correct: 0, sentence: "To a certain extent, I agree with you." },
+            { id: 20, q: "Was bedeutet der Ausdruck „as opposed to...`?", options: ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], correct: 1, sentence: "As opposed to the past, we work more flexibly today." }
         ];
 
         let vocabulary = [...defaultVocabulary];
@@ -431,7 +470,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v9');
+            const savedVocab = localStorage.getItem('vocab_data_v10');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -441,10 +480,10 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v9') || localStorage.getItem('vocab_progress_v8') || localStorage.getItem('vocab_progress_v7');
+            const savedProg = localStorage.getItem('vocab_progress_v10') || localStorage.getItem('vocab_progress_v9');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v9') || localStorage.getItem('vocab_stats_v8') || localStorage.getItem('vocab_stats_v7');
+            const savedStats = localStorage.getItem('vocab_stats_v10') || localStorage.getItem('vocab_stats_v9');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -477,10 +516,37 @@
                 const correctText = item.options[item.correct];
                 div.innerHTML = `
                     <div class="dict-word">${item.q}</div>
-                    <div class="dict-meaning">✔ ${correctText}</div>
+                    <div class="dict-meaning" style="color: #a5b4fc; margin-top:2px;">✔ ${correctText}</div>
+                    ${item.sentence ? `<div style="font-size: 0.82rem; color: var(--text-light); font-style: italic; margin-top: 4px;">💬 "${item.sentence}"</div>` : ''}
                 `;
                 container.appendChild(div);
             });
+        }
+
+        // TEXT-TO-SPEECH (SPRACHAUSGABE)
+        function playAudio(event, side) {
+            event.stopPropagation(); // Verhindert das Umdrehen der Karte beim Klick auf den Lautsprecher
+            if (!currentCard) return;
+
+            let textToSpeak = "";
+            if (side === 'front') {
+                // Bei der Frage lesen wir die richtige englische Antwort oder den Beispielsatz vor, 
+                // da die Frage selbst auf Deutsch gestellt ist.
+                textToSpeak = currentCard.sentence || currentCard.options[currentCard.correct];
+            } else {
+                // Auf der Rückseite lesen wir den Beispielsatz vor
+                textToSpeak = currentCard.sentence || currentCard.options[currentCard.correct];
+            }
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Vorherige Sprachausgabe abbrechen
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'en-US'; // Britisch ginge auch mit 'en-GB'
+                utterance.rate = 0.95; // Ganz leicht verlangsamt für optimales Lernen
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Sprachausgabe wird von deinem Browser leider nicht unterstützt.");
+            }
         }
 
         function recordActivity() {
@@ -504,7 +570,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -516,7 +582,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
             }
         }
 
@@ -571,6 +637,7 @@
             document.getElementById('progress-indicator').innerText = `Karte ${currentIndex + 1} von ${activeQueue.length}`;
             document.getElementById('box-indicator').innerText = `Level ${currentCard.level} / 3`;
             document.getElementById('front-question').innerText = currentCard.q;
+            document.getElementById('card-example-text').innerText = currentCard.sentence ? `💡 "${currentCard.sentence}"` : "";
 
             const backOptions = document.getElementById('back-options');
             backOptions.innerHTML = '';
@@ -621,7 +688,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -636,7 +703,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -668,8 +735,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -691,7 +758,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v9', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v10', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
