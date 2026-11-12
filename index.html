@@ -377,7 +377,8 @@
     </div>
 
     <script>
-        let vocabulary = [
+        // Standard-Vokabeln direkt eingebaut (Fallback & Basis)
+        let defaultVocabulary = [
             { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
             { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
             { id: 3, q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1 },
@@ -388,15 +389,15 @@
             { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0 },
             { id: 9, q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße, ungeprüfte Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1 },
             { id: 10, q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0 },
-            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"],
-            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"],
-            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"],
-            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"],
-            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"],
-            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"],
-            { correct: 0 }
+            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], correct: 1 },
+            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], correct: 0 },
+            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1 },
+            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1 },
+            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1 },
+            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0 }
         ];
 
+        let vocabulary = [...defaultVocabulary];
         let userProgress = {};
         let userStats = { history: {}, streak: 0, lastDate: "" };
         let activeQueue = [];
@@ -407,13 +408,20 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v6');
-            if (savedVocab) { try { vocabulary = JSON.parse(savedVocab); } catch(e) {} }
+            const savedVocab = localStorage.getItem('vocab_data_v7');
+            if (savedVocab) { 
+                try { 
+                    const parsed = JSON.parse(savedVocab);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        vocabulary = parsed;
+                    }
+                } catch(e) {} 
+            }
 
-            const savedProg = localStorage.getItem('vocab_progress_v6');
+            const savedProg = localStorage.getItem('vocab_progress_v7');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v6');
+            const savedStats = localStorage.getItem('vocab_stats_v7');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -443,7 +451,6 @@
             vocabulary.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'dict-item';
-                // Extrahiere die richtige Antwort aus den Optionen
                 const correctText = item.options[item.correct];
                 div.innerHTML = `
                     <div class="dict-word">${item.q}</div>
@@ -460,7 +467,6 @@
             }
             userStats.history[todayStr]++;
 
-            // Streak berechnen
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             const yestStr = yesterday.toISOString().slice(0, 10);
@@ -475,7 +481,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -486,8 +492,8 @@
             const yestStr = yesterday.toISOString().slice(0, 10);
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
-                userStats.streak = 0; // Streak gerissen bei Inaktivität
-                localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+                userStats.streak = 0;
+                localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
             }
         }
 
@@ -495,7 +501,6 @@
             const todayStr = new Date().toISOString().slice(0, 10);
             const todayCount = userStats.history[todayStr] || 0;
 
-            // Wochenkarten berechnen
             let weekCount = 0;
             for (let i = 0; i < 7; i++) {
                 const d = new Date();
@@ -593,7 +598,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -608,7 +613,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -640,8 +645,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -661,9 +666,9 @@
             reader.onload = function(e) {
                 try {
                     const newVocab = JSON.parse(e.target.result);
-                    if (Array.isArray(newVocab)) {
+                    if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v6', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v7', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
