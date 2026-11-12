@@ -180,25 +180,28 @@
             letter-spacing: 0.03em;
         }
         
-        /* AUDIO BUTTON */
+        /* AUDIO BUTTON (erst auf Rückseite sichtbar) */
         .audio-btn {
-            background: rgba(79, 70, 229, 0.2);
-            border: 1px solid rgba(79, 70, 229, 0.4);
+            background: rgba(79, 70, 229, 0.25);
+            border: 1px solid rgba(79, 70, 229, 0.5);
             color: #818cf8;
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
+            width: 40px;
+            height: 40px;
+            display: none; /* Standardmäßig unsichtbar bis zur Auswertung */
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             cursor: pointer;
             flex-shrink: 0;
             transition: background 0.15s;
         }
+        .audio-btn.visible {
+            display: flex;
+        }
         .audio-btn:active {
             transform: scale(0.92);
-            background: rgba(79, 70, 229, 0.4);
+            background: rgba(79, 70, 229, 0.5);
         }
 
         .card-question {
@@ -209,12 +212,16 @@
             margin: auto 0;
         }
         .card-example {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: #a5b4fc;
             font-style: italic;
-            margin-top: 10px;
+            margin-top: 12px;
             border-left: 3px solid var(--primary);
-            padding-left: 8px;
+            padding-left: 10px;
+            display: none; /* Erst nach Antwort sichtbar */
+        }
+        .card-example.visible {
+            display: block;
         }
         .card-hint {
             font-size: 0.82rem;
@@ -382,10 +389,7 @@
                 <div class="flashcard" id="flashcard" onclick="flipCard()">
                     <div class="card-face card-front">
                         <div>
-                            <div class="card-header-row">
-                                <div class="card-prompt">Fragestellung</div>
-                                <button class="audio-btn" id="audio-front-btn" onclick="playAudio(event, 'front')">🔊</button>
-                            </div>
+                            <div class="card-prompt">Fragestellung</div>
                             <div class="card-question" id="front-question">Lade...</div>
                         </div>
                         <div class="card-hint">Antippen zum Umdrehen 👆</div>
@@ -393,8 +397,8 @@
                     <div class="card-face card-back">
                         <div>
                             <div class="card-header-row">
-                                <div class="card-prompt">Optionen & Beispielsatz</div>
-                                <button class="audio-btn" id="audio-back-btn" onclick="playAudio(event, 'back')">🔊</button>
+                                <div class="card-prompt">Optionen & Lösung</div>
+                                <button class="audio-btn" id="audio-back-btn" onclick="playAudio(event)">🔊 Satz hören</button>
                             </div>
                             <div class="options-list" id="back-options"></div>
                             <div class="card-example" id="card-example-text"></div>
@@ -435,7 +439,7 @@
     </div>
 
     <script>
-        // Standard-Vokabeln & Satzbausteine mit echten Beispielsätzen (Stand: 20 Einträge)
+        // Standard-Vokabeln & Satzbausteine (Stand: 20 Einträge)
         let defaultVocabulary = [
             { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1, sentence: "Actually, I had something else in mind." },
             { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1, sentence: "It was a very sensible decision to make." },
@@ -470,7 +474,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v10');
+            const savedVocab = localStorage.getItem('vocab_data_v11');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -480,10 +484,10 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v10') || localStorage.getItem('vocab_progress_v9');
+            const savedProg = localStorage.getItem('vocab_progress_v11') || localStorage.getItem('vocab_progress_v10');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v10') || localStorage.getItem('vocab_stats_v9');
+            const savedStats = localStorage.getItem('vocab_stats_v11') || localStorage.getItem('vocab_stats_v10');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -523,29 +527,19 @@
             });
         }
 
-        // TEXT-TO-SPEECH (SPRACHAUSGABE)
-        function playAudio(event, side) {
-            event.stopPropagation(); // Verhindert das Umdrehen der Karte beim Klick auf den Lautsprecher
-            if (!currentCard) return;
-
-            let textToSpeak = "";
-            if (side === 'front') {
-                // Bei der Frage lesen wir die richtige englische Antwort oder den Beispielsatz vor, 
-                // da die Frage selbst auf Deutsch gestellt ist.
-                textToSpeak = currentCard.sentence || currentCard.options[currentCard.correct];
-            } else {
-                // Auf der Rückseite lesen wir den Beispielsatz vor
-                textToSpeak = currentCard.sentence || currentCard.options[currentCard.correct];
-            }
+        // TEXT-TO-SPEECH (Spielt den Beispielsatz erst nach Beantwortung ab)
+        function playAudio(event) {
+            event.stopPropagation();
+            if (!currentCard || !currentCard.sentence) return;
 
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Vorherige Sprachausgabe abbrechen
-                const utterance = new SpeechSynthesisUtterance(textToSpeak);
-                utterance.lang = 'en-US'; // Britisch ginge auch mit 'en-GB'
-                utterance.rate = 0.95; // Ganz leicht verlangsamt für optimales Lernen
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(currentCard.sentence);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.92;
                 window.speechSynthesis.speak(utterance);
             } else {
-                alert("Sprachausgabe wird von deinem Browser leider nicht unterstützt.");
+                alert("Sprachausgabe wird vom Browser nicht unterstützt.");
             }
         }
 
@@ -570,7 +564,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -582,7 +576,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
             }
         }
 
@@ -628,6 +622,10 @@
             document.getElementById('flashcard').classList.remove('is-flipped');
             document.getElementById('action-buttons').style.display = 'none';
 
+            // Beispielsatz und Audio-Button vor Antwort verstecken!
+            document.getElementById('card-example-text').classList.remove('visible');
+            document.getElementById('audio-back-btn').classList.remove('visible');
+
             if (currentIndex >= activeQueue.length) {
                 showFinish();
                 return;
@@ -672,6 +670,12 @@
                 document.getElementById('flashcard').classList.add('is-flipped');
             }
 
+            // NACH der Antwort: Beispielsatz und Audio-Button einblenden!
+            if (currentCard.sentence) {
+                document.getElementById('card-example-text').classList.add('visible');
+                document.getElementById('audio-back-btn').classList.add('visible');
+            }
+
             const options = document.getElementById('back-options').children;
             let vocabItem = vocabulary.find(v => v.id === currentCard.id);
 
@@ -688,7 +692,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -703,7 +707,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -735,8 +739,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v10', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v10', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -758,7 +762,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v10', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v11', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
