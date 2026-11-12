@@ -396,7 +396,7 @@
     </div>
 
     <script>
-        // Standard-Vokabeln & Satzbausteine (Stand: 18 Einträge)
+        // Standard-Vokabeln & Satzbausteine (Stand: 20 Einträge)
         let defaultVocabulary = [
             { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
             { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
@@ -415,7 +415,9 @@
             { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1 },
             { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0 },
             { id: 17, q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0 },
-            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...“?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1 }
+            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...“?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1 },
+            { id: 19, q: "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", options: ["To a certain extent...", "Up to a little limit...", "In some border..."], correct: 0 },
+            { id: 20, q: "Was bedeutet der Ausdruck „as opposed to...“?", options: ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], correct: 1 }
         ];
 
         let vocabulary = [...defaultVocabulary];
@@ -429,7 +431,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v8');
+            const savedVocab = localStorage.getItem('vocab_data_v9');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -439,11 +441,10 @@
                 } catch(e) {} 
             }
 
-            // alten Lernstand aus v7 übernehmen, falls vorhanden
-            const savedProg = localStorage.getItem('vocab_progress_v8') || localStorage.getItem('vocab_progress_v7');
+            const savedProg = localStorage.getItem('vocab_progress_v9') || localStorage.getItem('vocab_progress_v8') || localStorage.getItem('vocab_progress_v7');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v8') || localStorage.getItem('vocab_stats_v7');
+            const savedStats = localStorage.getItem('vocab_stats_v9') || localStorage.getItem('vocab_stats_v8') || localStorage.getItem('vocab_stats_v7');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -503,7 +504,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -515,7 +516,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
             }
         }
 
@@ -620,7 +621,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -635,7 +636,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -667,8 +668,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v9', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v9', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -690,7 +691,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v8', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v9', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
