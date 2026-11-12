@@ -474,7 +474,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v12');
+            const savedVocab = localStorage.getItem('vocab_data_v13');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -484,10 +484,10 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v12') || localStorage.getItem('vocab_progress_v11');
+            const savedProg = localStorage.getItem('vocab_progress_v13') || localStorage.getItem('vocab_progress_v12');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v12') || localStorage.getItem('vocab_stats_v11');
+            const savedStats = localStorage.getItem('vocab_stats_v13') || localStorage.getItem('vocab_stats_v12');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -497,6 +497,9 @@
             checkStreak();
             updateStatsDisplay();
             buildDictionary();
+            
+            // Audio-Engine beim Start einmal wecken
+            warmUpAudio();
             startSession();
         }
 
@@ -527,23 +530,28 @@
             });
         }
 
-        // TEXT-TO-SPEECH (Erzwingt garantiert immer den vollständigen Beispielsatz ab dem 1. Klick)
+        function warmUpAudio() {
+            if ('speechSynthesis' in window) {
+                const dummy = new SpeechSynthesisUtterance("ready");
+                dummy.volume = 0;
+                window.speechSynthesis.speak(dummy);
+            }
+        }
+
+        // TEXT-TO-SPEECH (Vollständiger Satz ohne Verschlucken)
         function playAudio(event) {
             event.stopPropagation();
             if (!currentCard || !currentCard.sentence) return;
 
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Vorherige Instanzen sofort stoppen
+                window.speechSynthesis.cancel();
                 
                 const fullText = String(currentCard.sentence);
                 const utterance = new SpeechSynthesisUtterance(fullText);
                 utterance.lang = 'en-US';
                 utterance.rate = 0.92;
                 
-                // Kurzer Timeout, damit der Cancel-Befehl sauber greift
-                setTimeout(() => {
-                    window.speechSynthesis.speak(utterance);
-                }, 50);
+                window.speechSynthesis.speak(utterance);
             } else {
                 alert("Sprachausgabe wird vom Browser nicht unterstützt.");
             }
@@ -570,7 +578,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -582,7 +590,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
             }
         }
 
@@ -696,7 +704,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -711,7 +719,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -743,8 +751,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -766,7 +774,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v12', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v13', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
