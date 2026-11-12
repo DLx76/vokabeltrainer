@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Oberstufen-Vokabeltrainer</title>
+    <title>Oberstufen-Vokabeltrainer Pro</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -28,23 +28,46 @@
             padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 16px) 16px;
             display: flex;
             flex-direction: column;
-            height: 100dvh; /* Perfekt für moderne Android/Pixel Viewports */
+            height: 100dvh;
             overflow: hidden;
         }
         header {
             text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
         h1 {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             margin: 0 0 2px 0;
             letter-spacing: -0.025em;
         }
-        .subtitle {
-            font-size: 0.75rem;
-            color: var(--text-light);
+        
+        /* NAVIGATION TABS */
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
         }
+        .tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            border-radius: 8px;
+            padding: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* CONTAINER VIEWS */
         .container {
             flex-grow: 1;
             display: flex;
@@ -56,27 +79,58 @@
             height: 100%;
             overflow: hidden;
         }
+        .view-section {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        /* STATS & STREAK DASHBOARD */
+        .stats-dashboard {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .stat-box .stat-num {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #818cf8;
+        }
+        .stat-box .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
         .meta-info {
             display: flex;
             justify-content: space-between;
             font-size: 0.75rem;
             color: var(--text-light);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             flex-shrink: 0;
         }
 
-        /* 3D FLIP CARD CONTAINER - Optimiert für Pixel GPUs */
+        /* 3D FLIP CARD */
         .card-scene {
             perspective: 1200px;
             width: 100%;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 12px;
-            min-height: 0; /* Wichtig für Flexbox-Kollaps-Vermeidung */
+            margin-bottom: 8px;
+            min-height: 0;
         }
         .flashcard {
             width: 100%;
@@ -85,8 +139,8 @@
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
             cursor: pointer;
-            border-radius: 20px;
-            box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
             will-change: transform;
         }
         .flashcard.is-flipped {
@@ -100,11 +154,11 @@
             -webkit-backface-visibility: hidden;
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 20px;
+            border-radius: 16px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
         }
         .card-back {
@@ -114,47 +168,42 @@
         }
 
         .card-prompt {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-light);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .card-question {
-            font-size: 1.15rem;
+            font-size: 1.05rem;
             font-weight: 600;
-            line-height: 1.4;
+            line-height: 1.35;
             color: var(--text);
             margin: auto 0;
         }
         .card-hint {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: var(--text-light);
             text-align: center;
-            margin-top: 8px;
+            margin-top: 6px;
             flex-shrink: 0;
         }
 
-        /* OPTIONS LIST ON BACK */
+        /* OPTIONS */
         .options-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             margin: auto 0;
             width: 100%;
         }
         .option-item {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-size: 0.9rem;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
             text-align: left;
             color: var(--text);
-            transition: background 0.15s, border-color 0.15s;
-        }
-        .option-item:active {
-            background: rgba(255, 255, 255, 0.1);
         }
         .option-item.correct {
             background: rgba(16, 185, 129, 0.2);
@@ -168,58 +217,77 @@
             color: #f87171;
         }
 
-        /* CONTROLS & BUTTONS */
+        /* WÖRTERBUCH LISTE */
+        .dictionary-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 4px;
+            margin-bottom: 8px;
+        }
+        .dict-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .dict-word {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #818cf8;
+        }
+        .dict-meaning {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* ACTIONS */
         .action-area {
             display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 6px;
             flex-shrink: 0;
         }
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 12px;
-            padding: 14px;
-            font-size: 0.95rem;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             flex: 1;
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
             text-align: center;
         }
-        .btn:active {
-            transform: scale(0.98);
-        }
-        .btn-success { background: var(--success); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .btn-error { background: var(--error); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+        .btn-success { background: var(--success); }
+        .btn-error { background: var(--error); }
 
         .management-section {
             border-top: 1px solid var(--border);
-            padding-top: 10px;
+            padding-top: 8px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             flex-shrink: 0;
         }
-        .row {
-            display: flex;
-            gap: 6px;
-        }
+        .row { display: flex; gap: 4px; }
         .mgmt-btn {
             flex: 1;
             background: rgba(255, 255, 255, 0.04);
             color: var(--text-light);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 8px;
-            font-size: 0.7rem;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 0.65rem;
             font-weight: 600;
             cursor: pointer;
-        }
-        .mgmt-btn:active {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--text);
         }
     </style>
 </head>
@@ -227,11 +295,33 @@
 
     <div class="container">
         <header>
-            <h1>Englisch-Gehirntraining</h1>
-            <div class="subtitle">Smart Spaced Repetition • Pixel Edition</div>
+            <h1>Englisch-Gehirntraining Pro</h1>
         </header>
 
-        <div id="quiz-view" style="display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
+        <!-- NAVIGATION TABS -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" id="tab-train" onclick="switchTab('train')">🧠 Training</button>
+            <button class="tab-btn" id="tab-dict" onclick="switchTab('dict')">📖 Wörterbuch (<span id="dict-count">0</span>)</button>
+        </div>
+
+        <!-- STATS DASHBOARD -->
+        <div class="stats-dashboard">
+            <div class="stat-box">
+                <div class="stat-num" id="stat-today">0</div>
+                <div class="stat-label">Heute</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-week">0</div>
+                <div class="stat-label">Diese Woche</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-num" id="stat-streak">0 🔥</div>
+                <div class="stat-label">Streak</div>
+            </div>
+        </div>
+
+        <!-- TRAINING VIEW -->
+        <div id="view-train" class="view-section">
             <div class="meta-info">
                 <span id="progress-indicator">Karte 1 von 10</span>
                 <span id="box-indicator">Level 1</span>
@@ -239,7 +329,6 @@
 
             <div class="card-scene">
                 <div class="flashcard" id="flashcard" onclick="flipCard()">
-                    <!-- VORDERSEITE -->
                     <div class="card-face card-front">
                         <div>
                             <div class="card-prompt">Fragestellung</div>
@@ -247,7 +336,6 @@
                         </div>
                         <div class="card-hint">Antippen zum Umdrehen 👆</div>
                     </div>
-                    <!-- RÜCKSEITE -->
                     <div class="card-face card-back">
                         <div>
                             <div class="card-prompt">Optionen & Lösung</div>
@@ -264,14 +352,21 @@
             </div>
         </div>
 
-        <div id="finish-view" style="display: none; text-align: center; padding: 30px 20px; background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); margin: auto 0;">
-            <h2>Runde durchgespielt! 🎯</h2>
-            <p id="session-stats" style="margin: 15px 0; color: var(--text-light); font-size: 0.95rem;"></p>
+        <!-- FINISH VIEW -->
+        <div id="finish-view" style="display: none; text-align: center; padding: 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); margin: auto 0;">
+            <h2>Runde geschafft! 🎯</h2>
+            <p id="session-stats" style="margin: 10px 0; color: var(--text-light); font-size: 0.9rem;"></p>
             <button class="btn" onclick="startSession()">Neue Runde starten</button>
         </div>
 
+        <!-- DICTIONARY VIEW -->
+        <div id="view-dict" class="view-section" style="display: none;">
+            <div class="dictionary-list" id="dictionary-container"></div>
+        </div>
+
+        <!-- MANAGEMENT -->
         <div class="management-section">
-            <button class="mgmt-btn" style="background: rgba(79, 70, 229, 0.15); color: #818cf8; border-color: rgba(79, 70, 229, 0.3);" onclick="document.getElementById('import-words-file').click()">📚 Wörterbuch aktualisieren (words.json)</button>
+            <button class="mgmt-btn" style="background: rgba(79, 70, 229, 0.15); color: #818cf8; border-color: rgba(79, 70, 229, 0.3);" onclick="document.getElementById('import-words-file').click()">📚 words.json aktualisieren</button>
             <div class="row">
                 <button class="mgmt-btn" onclick="exportProgress()">💾 Lernstand sichern</button>
                 <button class="mgmt-btn" onclick="document.getElementById('import-prog-file').click()">📂 Lernstand laden</button>
@@ -290,10 +385,20 @@
             { id: 5, q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1 },
             { id: 6, q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1 },
             { id: 7, q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1 },
-            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0 }
+            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0 },
+            { id: 9, q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße, ungeprüfte Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1 },
+            { id: 10, q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0 },
+            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"],
+            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"],
+            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"],
+            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"],
+            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"],
+            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"],
+            { correct: 0 }
         ];
 
-        let userProgress = {}; 
+        let userProgress = {};
+        let userStats = { history: {}, streak: 0, lastDate: "" };
         let activeQueue = [];
         let currentIndex = 0;
         let sessionCorrect = 0;
@@ -302,17 +407,106 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v5');
+            const savedVocab = localStorage.getItem('vocab_data_v6');
             if (savedVocab) { try { vocabulary = JSON.parse(savedVocab); } catch(e) {} }
 
-            const savedProg = localStorage.getItem('vocab_progress_v5');
+            const savedProg = localStorage.getItem('vocab_progress_v6');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
+
+            const savedStats = localStorage.getItem('vocab_stats_v6');
+            if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
                 item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
             });
 
+            checkStreak();
+            updateStatsDisplay();
+            buildDictionary();
             startSession();
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-train').classList.toggle('active', tab === 'train');
+            document.getElementById('tab-dict').classList.toggle('active', tab === 'dict');
+            document.getElementById('view-train').style.display = tab === 'train' ? 'flex' : 'none';
+            document.getElementById('finish-view').style.display = 'none';
+            document.getElementById('view-dict').style.display = tab === 'dict' ? 'flex' : 'none';
+            if(tab === 'dict') buildDictionary();
+        }
+
+        function buildDictionary() {
+            const container = document.getElementById('dictionary-container');
+            container.innerHTML = '';
+            document.getElementById('dict-count').innerText = vocabulary.length;
+
+            vocabulary.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'dict-item';
+                // Extrahiere die richtige Antwort aus den Optionen
+                const correctText = item.options[item.correct];
+                div.innerHTML = `
+                    <div class="dict-word">${item.q}</div>
+                    <div class="dict-meaning">✔ ${correctText}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function recordActivity() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            if (!userStats.history[todayStr]) {
+                userStats.history[todayStr] = 0;
+            }
+            userStats.history[todayStr]++;
+
+            // Streak berechnen
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yestStr = yesterday.toISOString().slice(0, 10);
+
+            if (userStats.lastDate === yestStr || userStats.lastDate === todayStr) {
+                if (userStats.lastDate !== todayStr && userStats.history[todayStr] === 1) {
+                    userStats.streak++;
+                }
+            } else if (userStats.lastDate !== todayStr) {
+                userStats.streak = 1;
+            }
+            if (userStats.streak === 0) userStats.streak = 1;
+            userStats.lastDate = todayStr;
+
+            localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+            updateStatsDisplay();
+        }
+
+        function checkStreak() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yestStr = yesterday.toISOString().slice(0, 10);
+
+            if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
+                userStats.streak = 0; // Streak gerissen bei Inaktivität
+                localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+            }
+        }
+
+        function updateStatsDisplay() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const todayCount = userStats.history[todayStr] || 0;
+
+            // Wochenkarten berechnen
+            let weekCount = 0;
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dStr = d.toISOString().slice(0, 10);
+                weekCount += (userStats.history[dStr] || 0);
+            }
+
+            document.getElementById('stat-today').innerText = todayCount;
+            document.getElementById('stat-week').innerText = weekCount;
+            document.getElementById('stat-streak').innerText = userStats.streak + " 🔥";
         }
 
         function startSession() {
@@ -329,7 +523,7 @@
             if (activeQueue.length > 10) activeQueue = activeQueue.slice(0, 10);
 
             currentIndex = 0;
-            document.getElementById('quiz-view').style.display = 'flex';
+            document.getElementById('view-train').style.display = 'flex';
             document.getElementById('finish-view').style.display = 'none';
             loadCard();
         }
@@ -369,16 +563,14 @@
             if (answeredCurrent) return;
             const card = document.getElementById('flashcard');
             isFlipped = !isFlipped;
-            if (isFlipped) {
-                card.classList.add('is-flipped');
-            } else {
-                card.classList.remove('is-flipped');
-            }
+            if (isFlipped) card.classList.add('is-flipped');
+            else card.classList.remove('is-flipped');
         }
 
         function evaluateSelection(selectedIndex) {
             if (answeredCurrent) return;
             answeredCurrent = true;
+            recordActivity();
 
             if (!isFlipped) {
                 isFlipped = true;
@@ -401,12 +593,13 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
 
         function rateAnswer(wasCorrect) {
+            recordActivity();
             let vocabItem = vocabulary.find(v => v.id === currentCard.id);
             if (wasCorrect) {
                 if (vocabItem.level < 3) vocabItem.level++;
@@ -415,20 +608,20 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
         }
 
         function showFinish() {
-            document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('view-train').style.display = 'none';
             document.getElementById('finish-view').style.display = 'block';
             document.getElementById('session-stats').innerText = `Du hast ${sessionCorrect} von ${activeQueue.length} Karten erfolgreich gemeistert!`;
         }
 
         function exportProgress() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(userProgress));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({progress: userProgress, stats: userStats}));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
             downloadAnchor.setAttribute("download", "lernstand_backup_" + new Date().toISOString().slice(0,10) + ".json");
@@ -443,13 +636,19 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    userProgress = JSON.parse(e.target.result);
-                    localStorage.setItem('vocab_progress_v5', JSON.stringify(userProgress));
-                    vocabulary.forEach(item => {
-                        if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
-                    });
-                    alert("Lernstand erfolgreich geladen!");
-                    startSession();
+                    const parsed = JSON.parse(e.target.result);
+                    if(parsed.progress) {
+                        userProgress = parsed.progress;
+                        userStats = parsed.stats || userStats;
+                        localStorage.setItem('vocab_progress_v6', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v6', JSON.stringify(userStats));
+                        vocabulary.forEach(item => {
+                            if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
+                        });
+                        updateStatsDisplay();
+                        alert("Lernstand & Statistiken erfolgreich geladen!");
+                        startSession();
+                    }
                 } catch(err) { alert("Fehler beim Einlesen."); }
             };
             reader.readAsText(file);
@@ -464,10 +663,11 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab)) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v5', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v6', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
+                        buildDictionary();
                         alert(`Wörterbuch aktualisiert! (${vocabulary.length} Vokabeln)`);
                         startSession();
                     }
