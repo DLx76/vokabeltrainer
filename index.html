@@ -180,7 +180,7 @@
             letter-spacing: 0.03em;
         }
         
-        /* AUDIO BUTTON (erst auf Rückseite sichtbar) */
+        /* AUDIO BUTTON */
         .audio-btn {
             background: rgba(79, 70, 229, 0.25);
             border: 1px solid rgba(79, 70, 229, 0.5);
@@ -188,7 +188,7 @@
             border-radius: 50%;
             width: 40px;
             height: 40px;
-            display: none; /* Standardmäßig unsichtbar bis zur Auswertung */
+            display: none;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
@@ -218,7 +218,7 @@
             margin-top: 12px;
             border-left: 3px solid var(--primary);
             padding-left: 10px;
-            display: none; /* Erst nach Antwort sichtbar */
+            display: none;
         }
         .card-example.visible {
             display: block;
@@ -474,7 +474,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v11');
+            const savedVocab = localStorage.getItem('vocab_data_v12');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -484,10 +484,10 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v11') || localStorage.getItem('vocab_progress_v10');
+            const savedProg = localStorage.getItem('vocab_progress_v12') || localStorage.getItem('vocab_progress_v11');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v11') || localStorage.getItem('vocab_stats_v10');
+            const savedStats = localStorage.getItem('vocab_stats_v12') || localStorage.getItem('vocab_stats_v11');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -527,17 +527,23 @@
             });
         }
 
-        // TEXT-TO-SPEECH (Spielt den Beispielsatz erst nach Beantwortung ab)
+        // TEXT-TO-SPEECH (Erzwingt garantiert immer den vollständigen Beispielsatz ab dem 1. Klick)
         function playAudio(event) {
             event.stopPropagation();
             if (!currentCard || !currentCard.sentence) return;
 
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const utterance = new SpeechSynthesisUtterance(currentCard.sentence);
+                window.speechSynthesis.cancel(); // Vorherige Instanzen sofort stoppen
+                
+                const fullText = String(currentCard.sentence);
+                const utterance = new SpeechSynthesisUtterance(fullText);
                 utterance.lang = 'en-US';
                 utterance.rate = 0.92;
-                window.speechSynthesis.speak(utterance);
+                
+                // Kurzer Timeout, damit der Cancel-Befehl sauber greift
+                setTimeout(() => {
+                    window.speechSynthesis.speak(utterance);
+                }, 50);
             } else {
                 alert("Sprachausgabe wird vom Browser nicht unterstützt.");
             }
@@ -564,7 +570,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -576,7 +582,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
             }
         }
 
@@ -622,7 +628,6 @@
             document.getElementById('flashcard').classList.remove('is-flipped');
             document.getElementById('action-buttons').style.display = 'none';
 
-            // Beispielsatz und Audio-Button vor Antwort verstecken!
             document.getElementById('card-example-text').classList.remove('visible');
             document.getElementById('audio-back-btn').classList.remove('visible');
 
@@ -670,7 +675,6 @@
                 document.getElementById('flashcard').classList.add('is-flipped');
             }
 
-            // NACH der Antwort: Beispielsatz und Audio-Button einblenden!
             if (currentCard.sentence) {
                 document.getElementById('card-example-text').classList.add('visible');
                 document.getElementById('audio-back-btn').classList.add('visible');
@@ -692,7 +696,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -707,7 +711,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -739,8 +743,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v11', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v11', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v12', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v12', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -762,7 +766,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v11', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v12', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
