@@ -25,7 +25,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: env(safe-area-inset-top, 12px) 16px env(safe-area-inset-bottom, 16px) 16px;
+            padding: env(safe-area-inset-top, 12px) 14px env(safe-area-inset-bottom, 14px) 14px;
             display: flex;
             flex-direction: column;
             height: 100dvh;
@@ -33,20 +33,20 @@
         }
         header {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         h1 {
-            font-size: 1.1rem;
-            margin: 0 0 2px 0;
+            font-size: 1.25rem;
+            margin: 0;
             letter-spacing: -0.025em;
         }
         
         /* NAVIGATION TABS */
         .nav-tabs {
             display: flex;
-            gap: 6px;
-            margin-bottom: 8px;
+            gap: 8px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
         .tab-btn {
@@ -54,9 +54,9 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             color: var(--text-light);
-            border-radius: 8px;
-            padding: 6px;
-            font-size: 0.75rem;
+            border-radius: 10px;
+            padding: 10px 8px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
@@ -73,7 +73,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            max-width: 480px;
+            max-width: 500px;
             margin: 0 auto;
             width: 100%;
             height: 100%;
@@ -91,8 +91,8 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 10px 8px;
+            margin-bottom: 10px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
@@ -100,12 +100,12 @@
             flex-shrink: 0;
         }
         .stat-box .stat-num {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: #818cf8;
         }
         .stat-box .stat-label {
-            font-size: 0.65rem;
+            font-size: 0.72rem;
             color: var(--text-light);
             text-transform: uppercase;
             margin-top: 2px;
@@ -114,9 +114,9 @@
         .meta-info {
             display: flex;
             justify-content: space-between;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: var(--text-light);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
             text-transform: uppercase;
             flex-shrink: 0;
@@ -129,7 +129,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             min-height: 0;
         }
         .flashcard {
@@ -139,7 +139,7 @@
             transform-style: preserve-3d;
             transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
             cursor: pointer;
-            border-radius: 16px;
+            border-radius: 18px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
             will-change: transform;
         }
@@ -154,11 +154,11 @@
             -webkit-backface-visibility: hidden;
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 18px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 16px;
+            padding: 18px;
             overflow-y: auto;
         }
         .card-back {
@@ -168,51 +168,58 @@
         }
 
         .card-prompt {
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             color: var(--text-light);
             text-transform: uppercase;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            letter-spacing: 0.03em;
         }
         .card-question {
-            font-size: 1.05rem;
+            font-size: 1.25rem;
             font-weight: 600;
-            line-height: 1.35;
+            line-height: 1.4;
             color: var(--text);
             margin: auto 0;
         }
         .card-hint {
-            font-size: 0.7rem;
+            font-size: 0.82rem;
             color: var(--text-light);
             text-align: center;
-            margin-top: 6px;
+            margin-top: 8px;
             flex-shrink: 0;
         }
 
-        /* OPTIONS */
+        /* DAUMENFREUNDLICHE OPTIONEN */
         .options-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 10px;
             margin: auto 0;
             width: 100%;
         }
         .option-item {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            line-height: 1.35;
             text-align: left;
             color: var(--text);
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .option-item:active {
+            transform: scale(0.99);
         }
         .option-item.correct {
-            background: rgba(16, 185, 129, 0.2);
+            background: rgba(16, 185, 129, 0.22);
             border-color: var(--success);
             color: #34d399;
             font-weight: 600;
         }
         .option-item.incorrect {
-            background: rgba(239, 68, 68, 0.2);
+            background: rgba(239, 68, 68, 0.22);
             border-color: var(--error);
             color: #f87171;
         }
@@ -223,43 +230,43 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             padding-right: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .dict-item {
             background: var(--card-bg);
             border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 10px 12px;
+            border-radius: 12px;
+            padding: 12px 14px;
             display: flex;
             flex-direction: column;
-            gap: 2px;
+            gap: 4px;
         }
         .dict-word {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 1.02rem;
             color: #818cf8;
         }
         .dict-meaning {
-            font-size: 0.8rem;
-            color: var(--text-light);
+            font-size: 0.92rem;
+            color: var(--text);
         }
 
-        /* ACTIONS */
+        /* ACTIONS (BEWERTUNGS-BUTTONS) */
         .action-area {
             display: flex;
-            gap: 8px;
-            margin-bottom: 6px;
+            gap: 10px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
         .btn {
             background: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-size: 0.9rem;
+            border-radius: 12px;
+            padding: 15px 12px;
+            font-size: 1.05rem;
             font-weight: 600;
             cursor: pointer;
             flex: 1;
@@ -269,25 +276,37 @@
         .btn-success { background: var(--success); }
         .btn-error { background: var(--error); }
 
+        /* DAUMENFREUNDLICHE UNTERE KACHELN (IMPORT / EXPORT) */
         .management-section {
             border-top: 1px solid var(--border);
-            padding-top: 8px;
+            padding-top: 10px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
             flex-shrink: 0;
         }
-        .row { display: flex; gap: 4px; }
+        .row { 
+            display: flex; 
+            gap: 8px; 
+        }
         .mgmt-btn {
             flex: 1;
-            background: rgba(255, 255, 255, 0.04);
-            color: var(--text-light);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 6px;
-            font-size: 0.65rem;
+            border-radius: 10px;
+            padding: 13px 10px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
+            text-align: center;
+        }
+        .mgmt-btn-primary {
+            background: rgba(79, 70, 229, 0.2);
+            color: #a5b4fc;
+            border-color: rgba(79, 70, 229, 0.45);
+            font-size: 0.92rem;
+            padding: 14px 12px;
         }
     </style>
 </head>
@@ -353,9 +372,9 @@
         </div>
 
         <!-- FINISH VIEW -->
-        <div id="finish-view" style="display: none; text-align: center; padding: 20px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); margin: auto 0;">
-            <h2>Runde geschafft! 🎯</h2>
-            <p id="session-stats" style="margin: 10px 0; color: var(--text-light); font-size: 0.9rem;"></p>
+        <div id="finish-view" style="display: none; text-align: center; padding: 24px 18px; background: var(--card-bg); border-radius: 18px; border: 1px solid var(--border); margin: auto 0;">
+            <h2 style="margin-top: 0;">Runde geschafft! 🎯</h2>
+            <p id="session-stats" style="margin: 14px 0 20px 0; color: var(--text-light); font-size: 1rem;"></p>
             <button class="btn" onclick="startSession()">Neue Runde starten</button>
         </div>
 
@@ -364,9 +383,9 @@
             <div class="dictionary-list" id="dictionary-container"></div>
         </div>
 
-        <!-- MANAGEMENT -->
+        <!-- MANAGEMENT (DAUMENFREUNDLICHE KACHELN) -->
         <div class="management-section">
-            <button class="mgmt-btn" style="background: rgba(79, 70, 229, 0.15); color: #818cf8; border-color: rgba(79, 70, 229, 0.3);" onclick="document.getElementById('import-words-file').click()">📚 words.json aktualisieren</button>
+            <button class="mgmt-btn mgmt-btn-primary" onclick="document.getElementById('import-words-file').click()">📚 words.json aktualisieren</button>
             <div class="row">
                 <button class="mgmt-btn" onclick="exportProgress()">💾 Lernstand sichern</button>
                 <button class="mgmt-btn" onclick="document.getElementById('import-prog-file').click()">📂 Lernstand laden</button>
@@ -377,7 +396,7 @@
     </div>
 
     <script>
-        // Standard-Vokabeln direkt eingebaut (Fallback & Basis)
+        // Standard-Vokabeln & Satzbausteine (Stand: 18 Einträge)
         let defaultVocabulary = [
             { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1 },
             { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1 },
@@ -394,7 +413,9 @@
             { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1 },
             { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1 },
             { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1 },
-            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0 }
+            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0 },
+            { id: 17, q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0 },
+            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...“?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1 }
         ];
 
         let vocabulary = [...defaultVocabulary];
@@ -408,7 +429,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v7');
+            const savedVocab = localStorage.getItem('vocab_data_v8');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -418,10 +439,11 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v7');
+            // alten Lernstand aus v7 übernehmen, falls vorhanden
+            const savedProg = localStorage.getItem('vocab_progress_v8') || localStorage.getItem('vocab_progress_v7');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v7');
+            const savedStats = localStorage.getItem('vocab_stats_v8') || localStorage.getItem('vocab_stats_v7');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
@@ -481,7 +503,7 @@
             if (userStats.streak === 0) userStats.streak = 1;
             userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -493,7 +515,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
             }
         }
 
@@ -598,7 +620,7 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
@@ -613,7 +635,7 @@
                 vocabItem.level = 1;
             }
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -645,8 +667,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v7', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v7', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v8', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v8', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -668,7 +690,7 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v7', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v8', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
