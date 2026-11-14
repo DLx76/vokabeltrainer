@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Oberstufen-Vokabeltrainer Pro</title>
+    <title>Englisch-Gehirntraining Pro</title>
     <style>
         :root {
             --primary: #4f46e5;
             --primary-hover: #4338ca;
             --success: #10b981;
             --error: #ef4444;
+            --warning: #f59e0b;
             --bg: #0f172a;
             --card-bg: #1e293b;
             --text: #f8fafc;
@@ -25,7 +26,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: env(safe-area-inset-top, 12px) 14px env(safe-area-inset-bottom, 14px) 14px;
+            padding: env(safe-area-inset-top, 10px) 14px env(safe-area-inset-bottom, 12px) 14px;
             display: flex;
             flex-direction: column;
             height: 100dvh;
@@ -37,16 +38,49 @@
             flex-shrink: 0;
         }
         h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             margin: 0;
             letter-spacing: -0.025em;
+        }
+
+        /* KATEGORIE-UMSCHALTER (FEINE KLINGE VS. FUNDAMENT) */
+        .mode-switcher {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 3px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+        .mode-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            padding: 8px 6px;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active-pro {
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.35);
+        }
+        .mode-btn.active-basis {
+            background: #0ea5e9;
+            color: white;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
         }
         
         /* NAVIGATION TABS */
         .nav-tabs {
             display: flex;
             gap: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             flex-shrink: 0;
         }
         .tab-btn {
@@ -55,16 +89,16 @@
             border: 1px solid var(--border);
             color: var(--text-light);
             border-radius: 10px;
-            padding: 10px 8px;
-            font-size: 0.9rem;
+            padding: 8px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
         }
         .tab-btn.active {
-            background: var(--primary);
+            background: rgba(255, 255, 255, 0.14);
             color: white;
-            border-color: var(--primary);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         /* CONTAINER VIEWS */
@@ -91,8 +125,8 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 10px 8px;
-            margin-bottom: 10px;
+            padding: 8px 6px;
+            margin-bottom: 8px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
@@ -100,23 +134,23 @@
             flex-shrink: 0;
         }
         .stat-box .stat-num {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
             color: #818cf8;
         }
         .stat-box .stat-label {
-            font-size: 0.72rem;
+            font-size: 0.68rem;
             color: var(--text-light);
             text-transform: uppercase;
-            margin-top: 2px;
+            margin-top: 1px;
         }
 
         .meta-info {
             display: flex;
             justify-content: space-between;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-light);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-weight: 600;
             text-transform: uppercase;
             flex-shrink: 0;
@@ -129,7 +163,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             min-height: 0;
         }
         .flashcard {
@@ -158,7 +192,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 18px;
+            padding: 16px;
             overflow-y: auto;
         }
         .card-back {
@@ -171,36 +205,41 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            gap: 6px;
         }
         .card-prompt {
-            font-size: 0.8rem;
+            font-size: 0.76rem;
             color: var(--text-light);
             text-transform: uppercase;
             letter-spacing: 0.03em;
         }
         
-        /* AUDIO BUTTON */
-        .audio-btn {
-            background: rgba(79, 70, 229, 0.25);
-            border: 1px solid rgba(79, 70, 229, 0.5);
-            color: #818cf8;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+        /* DOPPELTE AUDIO BUTTONS */
+        .audio-controls {
             display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            cursor: pointer;
+            gap: 6px;
             flex-shrink: 0;
-            transition: background 0.15s;
         }
-        .audio-btn.visible {
+        .audio-controls.visible {
             display: flex;
         }
-        .audio-btn:active {
-            transform: scale(0.92);
+        .audio-pill {
+            background: rgba(79, 70, 229, 0.25);
+            border: 1px solid rgba(79, 70, 229, 0.55);
+            color: #a5b4fc;
+            border-radius: 20px;
+            padding: 6px 11px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .audio-pill:active {
+            transform: scale(0.94);
             background: rgba(79, 70, 229, 0.5);
         }
 
@@ -212,19 +251,20 @@
             margin: auto 0;
         }
         .card-example {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: #a5b4fc;
             font-style: italic;
             margin-top: 12px;
             border-left: 3px solid var(--primary);
             padding-left: 10px;
             display: none;
+            line-height: 1.35;
         }
         .card-example.visible {
             display: block;
         }
         .card-hint {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: var(--text-light);
             text-align: center;
             margin-top: 8px;
@@ -235,7 +275,7 @@
         .options-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             margin: auto 0;
             width: 100%;
         }
@@ -243,8 +283,8 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 12px;
-            padding: 14px 16px;
-            font-size: 1rem;
+            padding: 13px 14px;
+            font-size: 0.96rem;
             line-height: 1.35;
             text-align: left;
             color: var(--text);
@@ -274,57 +314,69 @@
             flex-direction: column;
             gap: 8px;
             padding-right: 4px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .dict-item {
             background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 12px 14px;
+            padding: 11px 13px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
         .dict-word {
             font-weight: 600;
-            font-size: 1.02rem;
+            font-size: 0.98rem;
             color: #818cf8;
         }
         .dict-meaning {
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             color: var(--text);
         }
 
-        /* ACTIONS (BEWERTUNGS-BUTTONS) */
+        /* ACTIONS (BEWERTUNGS-BUTTONS INKL. MITTLEREM WIEDERHOL-BUTTON) */
         .action-area {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
             flex-shrink: 0;
+            align-items: stretch;
         }
         .btn {
             background: var(--primary);
             color: white;
             border: none;
             border-radius: 12px;
-            padding: 15px 12px;
-            font-size: 1.05rem;
+            padding: 14px 10px;
+            font-size: 0.98rem;
             font-weight: 600;
             cursor: pointer;
-            flex: 1;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            flex: 1.2;
             text-align: center;
         }
         .btn-success { background: var(--success); }
         .btn-error { background: var(--error); }
+        .btn-repeat {
+            flex: 0.9;
+            background: rgba(245, 158, 11, 0.18);
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            color: #fbbf24;
+            font-size: 0.78rem;
+            padding: 8px 6px;
+            line-height: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* MANAGEMENT */
         .management-section {
             border-top: 1px solid var(--border);
-            padding-top: 10px;
+            padding-top: 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
         }
         .row { display: flex; gap: 8px; }
@@ -334,8 +386,8 @@
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 10px;
-            padding: 13px 10px;
-            font-size: 0.85rem;
+            padding: 10px 8px;
+            font-size: 0.8rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
@@ -344,8 +396,8 @@
             background: rgba(79, 70, 229, 0.2);
             color: #a5b4fc;
             border-color: rgba(79, 70, 229, 0.45);
-            font-size: 0.92rem;
-            padding: 14px 12px;
+            font-size: 0.85rem;
+            padding: 11px;
         }
     </style>
 </head>
@@ -356,9 +408,15 @@
             <h1>Englisch-Gehirntraining Pro</h1>
         </header>
 
+        <!-- KATEGORIE-UMSCHALTER -->
+        <div class="mode-switcher">
+            <button class="mode-btn active-pro" id="mode-pro" onclick="setMode('pro')">🔥 Feine Klinge (20)</button>
+            <button class="mode-btn" id="mode-basis" onclick="setMode('basis')">🧠 Fundament C1 (50)</button>
+        </div>
+
         <!-- NAVIGATION TABS -->
         <div class="nav-tabs">
-            <button class="tab-btn active" id="tab-train" onclick="switchTab('train')">🧠 Training</button>
+            <button class="tab-btn active" id="tab-train" onclick="switchTab('train')">🎯 Training</button>
             <button class="tab-btn" id="tab-dict" onclick="switchTab('dict')">📖 Wörterbuch (<span id="dict-count">0</span>)</button>
         </div>
 
@@ -374,7 +432,7 @@
             </div>
             <div class="stat-box">
                 <div class="stat-num" id="stat-streak">0 🔥</div>
-                <div class="stat-label">Streak</div>
+                <div class="stat-label">Streak (Klinge)</div>
             </div>
         </div>
 
@@ -382,14 +440,14 @@
         <div id="view-train" class="view-section">
             <div class="meta-info">
                 <span id="progress-indicator">Karte 1 von 10</span>
-                <span id="box-indicator">Level 1</span>
+                <span id="box-indicator">Level 1 / 3</span>
             </div>
 
             <div class="card-scene">
                 <div class="flashcard" id="flashcard" onclick="flipCard()">
                     <div class="card-face card-front">
                         <div>
-                            <div class="card-prompt">Fragestellung</div>
+                            <div class="card-prompt" id="front-category-label">Feine Klinge</div>
                             <div class="card-question" id="front-question">Lade...</div>
                         </div>
                         <div class="card-hint">Antippen zum Umdrehen 👆</div>
@@ -397,8 +455,11 @@
                     <div class="card-face card-back">
                         <div>
                             <div class="card-header-row">
-                                <div class="card-prompt">Optionen & Lösung</div>
-                                <button class="audio-btn" id="audio-back-btn" onclick="playAudio(event)">🔊 Satz hören</button>
+                                <div class="card-prompt">Lösung & Audio</div>
+                                <div class="audio-controls" id="audio-controls">
+                                    <button class="audio-pill" onclick="playWordAudio(event)">🔊 Wort</button>
+                                    <button class="audio-pill" onclick="playSentenceAudio(event)">🔊 Satz</button>
+                                </div>
                             </div>
                             <div class="options-list" id="back-options"></div>
                             <div class="card-example" id="card-example-text"></div>
@@ -408,9 +469,11 @@
                 </div>
             </div>
 
+            <!-- BEWERTUNGS-BUTTONS MIT MITTLERER WIEDERHOL-OPTION -->
             <div class="action-area" id="action-buttons" style="display: none;">
-                <button class="btn btn-error" onclick="rateAnswer(false)">❌ Nochmal</button>
-                <button class="btn btn-success" onclick="rateAnswer(true)">✔ Gewusst</button>
+                <button class="btn btn-error" onclick="rateAnswer('wrong')">❌ Nochmal</button>
+                <button class="btn btn-repeat" onclick="rateAnswer('repeat')">🔄 Karte in Runde wiederholen</button>
+                <button class="btn btn-success" onclick="rateAnswer('correct')">✔ Gewusst</button>
             </div>
         </div>
 
@@ -439,33 +502,87 @@
     </div>
 
     <script>
-        // Standard-Vokabeln & Satzbausteine (Stand: 20 Einträge)
+        // GESAMTER WORTSCHATZ: 20x FEINE KLINGE (pro) + 50x FUNDAMENT C1 (basis)
         let defaultVocabulary = [
-            { id: 1, q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1, sentence: "Actually, I had something else in mind." },
-            { id: 2, q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1, sentence: "It was a very sensible decision to make." },
-            { id: 3, q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1, sentence: "His words seemed to imply some criticism." },
-            { id: 4, q: "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", options: ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], correct: 0, sentence: "Actually, I had something else in mind." },
-            { id: 5, q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1, sentence: "We need to discuss this important issue." },
-            { id: 6, q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1, sentence: "I am looking forward to seeing you soon." },
-            { id: 7, q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1, sentence: "This car is very economical on fuel." },
-            { id: 8, q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0, sentence: "The market is currently prone to sudden changes." },
-            { id: 9, q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße, ungeprüfte Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1, sentence: "Experts argue that growth will continue." },
-            { id: 10, q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0, sentence: "It is widely assumed that prices will rise." },
-            { id: 11, q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], correct: 1, sentence: "Communication is crucial for a team." },
-            { id: 12, q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], correct: 0, sentence: "Due to technical issues, we delayed the launch." },
-            { id: 13, q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1, sentence: "She worked hard and consequently succeeded." },
-            { id: 14, q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1, sentence: "You should address this issue on time." },
-            { id: 15, q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1, sentence: "This recent study sheds light on the causes." },
-            { id: 16, q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0, sentence: "Complex systems are often prone to errors." },
-            { id: 17, q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0, sentence: "Provided that we address the issue, all will go well." },
-            { id: 18, q: "Was bedeutet der Ausdruck „to be bound to...`?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1, sentence: "Such changes are bound to be risky." },
-            { id: 19, q: "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", options: ["To a certain extent...", "Up to a little limit...", "In some border..."], correct: 0, sentence: "To a certain extent, I agree with you." },
-            { id: 20, q: "Was bedeutet der Ausdruck „as opposed to...`?", options: ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], correct: 1, sentence: "As opposed to the past, we work more flexibly today." }
+            // --- FEINE KLINGE (IDs 1-20) ---
+            { id: 1, category: "pro", word: "actually", q: "Was bedeutet das Wort „actually“ im Englischen?", options: ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], correct: 1, sentence: "Actually, I had something else in mind." },
+            { id: 2, category: "pro", word: "sensible", q: "Was bedeutet das Wort „sensible“?", options: ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], correct: 1, sentence: "It was a very sensible decision to make." },
+            { id: 3, category: "pro", word: "to imply", q: "Wie übersetzt man das Verb „to imply“ am präzisesten?", options: ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], correct: 1, sentence: "His words seemed to imply some criticism." },
+            { id: 4, category: "pro", word: "Actually, I had something else in mind", q: "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", options: ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], correct: 0, sentence: "Actually, I had something else in mind." },
+            { id: 5, category: "pro", word: "discuss this issue", q: "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", options: ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], correct: 1, sentence: "We need to discuss this important issue." },
+            { id: 6, category: "pro", word: "looking forward to seeing you", q: "Wie heißt es korrekt nach „to look forward to“?", options: ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], correct: 1, sentence: "I am looking forward to seeing you soon." },
+            { id: 7, category: "pro", word: "economical", q: "Wie unterscheidet sich „economic“ von „economical“?", options: ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], correct: 1, sentence: "This car is very economical on fuel." },
+            { id: 8, category: "pro", word: "currently", q: "Was bedeutet das englische Wort „currently“?", options: ["aktuell / derzeit", "eigentlich", "konsequent"], correct: 0, sentence: "The market is currently prone to sudden changes." },
+            { id: 9, category: "pro", word: "to argue", q: "Was unterscheidet „to argue“ von „to claim“ am ehesten?", options: ["To claim = fundiert argumentieren; To argue = bloße Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], correct: 1, sentence: "Experts argue that growth will continue." },
+            { id: 10, category: "pro", word: "It is widely assumed that", q: "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", options: ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], correct: 0, sentence: "It is widely assumed that prices will rise." },
+            { id: 11, category: "pro", word: "crucial", q: "Welche Bedeutung hat das Adjektiv „crucial“?", options: ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], correct: 1, sentence: "Communication is crucial for a team." },
+            { id: 12, category: "pro", word: "Due to", q: "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", options: ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], correct: 0, sentence: "Due to technical issues, we delayed the launch." },
+            { id: 13, category: "pro", word: "consequently", q: "Welche Bedeutung hat das Wort „consequently“?", options: ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], correct: 1, sentence: "She worked hard and consequently succeeded." },
+            { id: 14, category: "pro", word: "should address", q: "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", options: ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], correct: 1, sentence: "You should address this issue on time." },
+            { id: 15, category: "pro", word: "to shed light on", q: "Was bedeutet der Ausdruck „to shed light on...“?", options: ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], correct: 1, sentence: "This recent study sheds light on the causes." },
+            { id: 16, category: "pro", word: "prone to", q: "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", options: ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], correct: 0, sentence: "Complex systems are often prone to errors." },
+            { id: 17, category: "pro", word: "Provided that", q: "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", options: ["Provided that...", "In case of that...", "As long as assuming..."], correct: 0, sentence: "Provided that we address the issue, all will go well." },
+            { id: 18, category: "pro", word: "to be bound to", q: "Was bedeutet der Ausdruck „to be bound to...“?", options: ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], correct: 1, sentence: "Such changes are bound to be risky." },
+            { id: 19, category: "pro", word: "To a certain extent", q: "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", options: ["To a certain extent...", "Up to a little limit...", "In some border..."], correct: 0, sentence: "To a certain extent, I agree with you." },
+            { id: 20, category: "pro", word: "as opposed to", q: "Was bedeutet der Ausdruck „as opposed to...“?", options: ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], correct: 1, sentence: "As opposed to the past, we work more flexibly today." },
+
+            // --- FUNDAMENT C1-BASIS (IDs 101-150) ---
+            { id: 101, category: "basis", word: "to ascertain", q: "Was bedeutet „to ascertain“?", options: ["etwas ablehnen", "sich vergewissern, feststellen", "vermuten"], correct: 1, sentence: "The committee sought to ascertain the exact facts." },
+            { id: 102, category: "basis", word: "comprehensive", q: "Was bedeutet „comprehensive“?", options: ["unverständlich", "umfassend, gründlich", "kurz gefasst"], correct: 1, sentence: "We conducted a comprehensive review of the market." },
+            { id: 103, category: "basis", word: "indispensable", q: "Was bedeutet „indispensable“?", options: ["verzichtbar", "unentbehrlich, unerlässlich", "fragwürdig"], correct: 1, sentence: "Reliable data is indispensable for our analysis." },
+            { id: 104, category: "basis", word: "to encounter", q: "Was bedeutet „to encounter“?", options: ["auf etwas stoßen, begegnen", "etwas vermeiden", "etwas zählen"], correct: 0, sentence: "We might encounter some unexpected resistance." },
+            { id: 105, category: "basis", word: "demanding", q: "Was bedeutet „demanding“?", options: ["einfach", "anspruchsvoll, fordernd", "langweilig"], correct: 1, sentence: "The new management role is highly demanding." },
+            { id: 106, category: "basis", word: "to facilitate", q: "Was bedeutet „to facilitate“?", options: ["erschweren", "erleichtern, ermöglichen", "verbieten"], correct: 1, sentence: "Modern technology helps to facilitate communication." },
+            { id: 107, category: "basis", word: "subsequent", q: "Was bedeutet „subsequent“?", options: ["vorhergehend", "nachfolgend, später", "gleichzeitig"], correct: 1, sentence: "Subsequent studies confirmed our initial hypothesis." },
+            { id: 108, category: "basis", word: "to emerge", q: "Was bedeutet „to emerge“?", options: ["verschwinden", "hervorgehen, auftauchen", "scheitern"], correct: 1, sentence: "New patterns began to emerge from the data." },
+            { id: 109, category: "basis", word: "significant", q: "Was bedeutet „significant“?", options: ["unbedeutend", "bedeutend, beträchtlich", "unsichtbar"], correct: 1, sentence: "There is a significant difference between both approaches." },
+            { id: 110, category: "basis", word: "to assess", q: "Was bedeutet „to assess“?", options: ["beurteilen, einschätzen", "ignorieren", "besitzen"], correct: 0, sentence: "It is difficult to assess the long-term impact." },
+            { id: 111, category: "basis", word: "to scrutinize", q: "Was bedeutet „to scrutinize“?", options: ["überfliegen", "genau unter die Lupe nehmen, prüfen", "verstecken"], correct: 1, sentence: "The auditors scrutinized every single transaction." },
+            { id: 112, category: "basis", word: "ambiguous", q: "Was bedeutet „ambiguous“?", options: ["eindeutig", "mehrdeutig, unklar", "ehrgeizig"], correct: 1, sentence: "The wording of the contract is deliberately ambiguous." },
+            { id: 113, category: "basis", word: "to alleviate", q: "Was bedeutet „to alleviate“?", options: ["verschlimmern", "lindern, mildern, erleichtern", "erhöhen"], correct: 1, sentence: "These measures are designed to alleviate the pressure." },
+            { id: 114, category: "basis", word: "inevitable", q: "Was bedeutet „inevitable“?", options: ["vermeidbar", "unvermeidlich, unausweichlich", "unwahrscheinlich"], correct: 1, sentence: "With rising costs, price adjustments became inevitable." },
+            { id: 115, category: "basis", word: "to substantiate", q: "Was bedeutet „to substantiate“?", options: ["widerlegen", "untermauern, belegen", "ersetzen"], correct: 1, sentence: "You need solid evidence to substantiate your claim." },
+            { id: 116, category: "basis", word: "feasible", q: "Was bedeutet „feasible“?", options: ["unmöglich", "machbar, durchführbar", "teuer"], correct: 1, sentence: "We must check whether this timeline is technically feasible." },
+            { id: 117, category: "basis", word: "to undermine", q: "Was bedeutet „to undermine“?", options: ["stärken", "untergraben, schwächen", "unterstreichen"], correct: 1, sentence: "Constant criticism can undermine a team's confidence." },
+            { id: 118, category: "basis", word: "reluctant", q: "Was bedeutet „reluctant“?", options: ["begeistert", "zögerlich, widerwillig", "zuverlässig"], correct: 1, sentence: "Many investors are currently reluctant to take risks." },
+            { id: 119, category: "basis", word: "to allocate", q: "Was bedeutet „to allocate“?", options: ["zuweisen, zuteilen", "streichen", "sammeln"], correct: 0, sentence: "We must allocate our budget more efficiently next year." },
+            { id: 120, category: "basis", word: "coherent", q: "Was bedeutet „coherent“?", options: ["widersprüchlich", "schlüssig, zusammenhängend", "verwirrend"], correct: 1, sentence: "She presented a clear and coherent argument." },
+            { id: 121, category: "basis", word: "to diverge", q: "Was bedeutet „to diverge“?", options: ["zusammenlaufen", "auseinandergehen, abweichen", "zustimmen"], correct: 1, sentence: "Their opinions on the matter began to diverge." },
+            { id: 122, category: "basis", word: "to deter", q: "Was bedeutet „to deter“?", options: ["ermutigen", "abschrecken, abhalten", "beschleunigen"], correct: 1, sentence: "Higher prices may deter potential buyers." },
+            { id: 123, category: "basis", word: "vulnerable", q: "Was bedeutet „vulnerable“?", options: ["unverwundbar", "anfällig, verwundbar, gefährdet", "wertvoll"], correct: 1, sentence: "Small businesses are particularly vulnerable to market shifts." },
+            { id: 124, category: "basis", word: "to advocate", q: "Was bedeutet „to advocate“?", options: ["bekämpfen", "befürworten, sich einsetzen für", "kritisieren"], correct: 1, sentence: "She publicly advocates for sustainable energy policies." },
+            { id: 125, category: "basis", word: "to trigger", q: "Was bedeutet „to trigger“?", options: ["stoppen", "auslösen, in Gang setzen", "verzögern"], correct: 1, sentence: "The announcement triggered a wave of reactions." },
+            { id: 126, category: "basis", word: "proficient", q: "Was bedeutet „proficient“?", options: ["unerfahren", "bewandert, geübt, fließend", "profitabel"], correct: 1, sentence: "He is proficient in three foreign languages." },
+            { id: 127, category: "basis", word: "to evaluate", q: "Was bedeutet „to evaluate“?", options: ["bewerten, auswerten", "entwickeln", "übersehen"], correct: 0, sentence: "We need to evaluate the risks before making a decision." },
+            { id: 128, category: "basis", word: "to pursue", q: "Was bedeutet „to pursue“?", options: ["aufgeben", "verfolgen (Ziele, Pläne)", "vermeiden"], correct: 1, sentence: "She decided to pursue a career in international law." },
+            { id: 129, category: "basis", word: "to enhance", q: "Was bedeutet „to enhance“?", options: ["verschlechtern", "verbessern, steigern, aufwerten", "verkleinern"], correct: 1, sentence: "New software can enhance productivity significantly." },
+            { id: 130, category: "basis", word: "to perceive", q: "Was bedeutet „to perceive“?", options: ["wahrnehmen, empfinden", "verpassen", "überzeugen"], correct: 0, sentence: "Consumers perceive the brand as high quality." },
+            { id: 131, category: "basis", word: "relevant", q: "Was bedeutet „relevant“?", options: ["belanglos", "relevant, sachdienlich, treffend", "veraltet"], correct: 1, sentence: "Please provide only relevant information." },
+            { id: 132, category: "basis", word: "to resolve", q: "Was bedeutet „to resolve“?", options: ["lösen (Problem, Konflikt)", "verursachen", "verschieben"], correct: 0, sentence: "We must resolve this issue by tomorrow." },
+            { id: 133, category: "basis", word: "to substitute", q: "Was bedeutet „to substitute“?", options: ["hinzufügen", "ersetzen, austauschen", "behalten"], correct: 1, sentence: "You can substitute butter with oil in this recipe." },
+            { id: 134, category: "basis", word: "to sustain", q: "Was bedeutet „to sustain“?", options: ["beenden", "aufrechterhalten, stützen", "unterbrechen"], correct: 1, sentence: "Can the company sustain this rapid growth rate?" },
+            { id: 135, category: "basis", word: "to compile", q: "Was bedeutet „to compile“?", options: ["löschen", "zusammenstellen, zusammentragen", "verteilen"], correct: 1, sentence: "He spent several days compiling the annual report." },
+            { id: 136, category: "basis", word: "to contend", q: "Was bedeutet „to contend“?", options: ["zustimmen", "behaupten, kämpfen (mit)", "schweigen"], correct: 1, sentence: "Economists contend that the market will soon recover." },
+            { id: 137, category: "basis", word: "diverse", q: "Was bedeutet „diverse“?", options: ["eintönig", "verschiedenartig, vielfältig", "geteilt"], correct: 1, sentence: "Our team has a very diverse professional background." },
+            { id: 138, category: "basis", word: "to outweigh", q: "Was bedeutet „to outweigh“?", options: ["unterlegen sein", "überwiegen, schwerer wiegen als", "wiegen"], correct: 1, sentence: "The long-term benefits far outweigh the initial risks." },
+            { id: 139, category: "basis", word: "to reflect", q: "Was bedeutet „to reflect“?", options: ["verbergen", "widerspiegeln, überlegen", "ablehnen"], correct: 1, sentence: "The latest figures reflect a very positive trend." },
+            { id: 140, category: "basis", word: "substantial", q: "Was bedeutet „substantial“?", options: ["geringfügig", "beträchtlich, wesentlich, substanziell", "oberflächlich"], correct: 1, sentence: "They made a substantial investment in renewable energy." },
+            { id: 141, category: "basis", word: "to diminish", q: "Was bedeutet „to diminish“?", options: ["vergrößern", "verringern, schmälern, abnehmen", "verdoppeln"], correct: 1, sentence: "Nothing can diminish the value of his contribution." },
+            { id: 142, category: "basis", word: "concurrent", q: "Was bedeutet „concurrent“?", options: ["nacheinander", "gleichzeitig, parallel laufend", "widersprüchlich"], correct: 1, sentence: "The manager is handling three concurrent projects." },
+            { id: 143, category: "basis", word: "to foster", q: "Was bedeutet „to foster“?", options: ["behindern", "fördern, pflegen, begünstigen", "verbieten"], correct: 1, sentence: "We want to foster a culture of open feedback." },
+            { id: 144, category: "basis", word: "redundant", q: "Was bedeutet „redundant“?", options: ["unverzichtbar", "überflüssig, entbehrlich", "neu"], correct: 1, sentence: "Automation has made several manual steps redundant." },
+            { id: 145, category: "basis", word: "to verify", q: "Was bedeutet „to verify“?", options: ["fälschen", "überprüfen, verifizieren, bestätigen", "anzweifeln"], correct: 1, sentence: "Please verify all figures before publishing the report." },
+            { id: 146, category: "basis", word: "plausible", q: "Was bedeutet „plausible“?", options: ["unglaubwürdig", "einleuchtend, glaubhaft, plausibel", "unmöglich"], correct: 1, sentence: "She offered a very plausible explanation for the delay." },
+            { id: 147, category: "basis", word: "to convey", q: "Was bedeutet „to convey“?", options: ["verheimlichen", "vermitteln, überbringen (Botschaft)", "verweigern"], correct: 1, sentence: "His tone of voice conveyed a sense of urgency." },
+            { id: 148, category: "basis", word: "arbitrary", q: "Was bedeutet „arbitrary“?", options: ["durchdacht", "willkürlich, beliebig", "streng"], correct: 1, sentence: "The selection criteria seemed completely arbitrary." },
+            { id: 149, category: "basis", word: "to comply with", q: "Was bedeutet „to comply with“?", options: ["verstoßen gegen", "befolgen, einhalten (Regeln, Gesetze)", "ignorieren"], correct: 1, sentence: "All suppliers must comply with strict safety standards." },
+            { id: 150, category: "basis", word: "resilient", q: "Was bedeutet „resilient“?", options: ["zerbrechlich", "widerstandsfähig, belastbar", "empfindlich"], correct: 1, sentence: "A resilient supply chain can withstand sudden disruptions." }
         ];
 
         let vocabulary = [...defaultVocabulary];
         let userProgress = {};
         let userStats = { history: {}, streak: 0, lastDate: "" };
+        let currentMode = 'pro'; // 'pro' (Feine Klinge) oder 'basis' (Fundament C1)
         let activeQueue = [];
         let currentIndex = 0;
         let sessionCorrect = 0;
@@ -474,7 +591,7 @@
         let answeredCurrent = false;
 
         function initApp() {
-            const savedVocab = localStorage.getItem('vocab_data_v13');
+            const savedVocab = localStorage.getItem('vocab_data_v14');
             if (savedVocab) { 
                 try { 
                     const parsed = JSON.parse(savedVocab);
@@ -484,22 +601,29 @@
                 } catch(e) {} 
             }
 
-            const savedProg = localStorage.getItem('vocab_progress_v13') || localStorage.getItem('vocab_progress_v12');
+            const savedProg = localStorage.getItem('vocab_progress_v14') || localStorage.getItem('vocab_progress_v13');
             if (savedProg) { try { userProgress = JSON.parse(savedProg); } catch(e) {} }
 
-            const savedStats = localStorage.getItem('vocab_stats_v13') || localStorage.getItem('vocab_stats_v12');
+            const savedStats = localStorage.getItem('vocab_stats_v14') || localStorage.getItem('vocab_stats_v13');
             if (savedStats) { try { userStats = JSON.parse(savedStats); } catch(e) {} }
 
             vocabulary.forEach(item => {
+                if (!item.category) item.category = "pro";
                 item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
             });
 
             checkStreak();
             updateStatsDisplay();
             buildDictionary();
-            
-            // Audio-Engine beim Start einmal wecken
             warmUpAudio();
+            startSession();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-pro').className = mode === 'pro' ? 'mode-btn active-pro' : 'mode-btn';
+            document.getElementById('mode-basis').className = mode === 'basis' ? 'mode-btn active-basis' : 'mode-btn';
+            buildDictionary();
             startSession();
         }
 
@@ -515,16 +639,17 @@
         function buildDictionary() {
             const container = document.getElementById('dictionary-container');
             container.innerHTML = '';
-            document.getElementById('dict-count').innerText = vocabulary.length;
+            const filtered = vocabulary.filter(v => v.category === currentMode);
+            document.getElementById('dict-count').innerText = filtered.length;
 
-            vocabulary.forEach(item => {
+            filtered.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'dict-item';
                 const correctText = item.options[item.correct];
                 div.innerHTML = `
-                    <div class="dict-word">${item.q}</div>
+                    <div class="dict-word">${item.word ? item.word : item.q}</div>
                     <div class="dict-meaning" style="color: #a5b4fc; margin-top:2px;">✔ ${correctText}</div>
-                    ${item.sentence ? `<div style="font-size: 0.82rem; color: var(--text-light); font-style: italic; margin-top: 4px;">💬 "${item.sentence}"</div>` : ''}
+                    ${item.sentence ? `<div style="font-size: 0.8rem; color: var(--text-light); font-style: italic; margin-top: 3px;">💬 "${item.sentence}"</div>` : ''}
                 `;
                 container.appendChild(div);
             });
@@ -538,25 +663,32 @@
             }
         }
 
-        // TEXT-TO-SPEECH (Vollständiger Satz ohne Verschlucken)
-        function playAudio(event) {
+        // AUDIO 1: EINZELNES WORT / WENDUNG
+        function playWordAudio(event) {
+            event.stopPropagation();
+            if (!currentCard) return;
+            const textToSpeak = currentCard.word || currentCard.sentence;
+            speakText(textToSpeak, 0.88);
+        }
+
+        // AUDIO 2: VOLLSTÄNDIGER BEISPIELSATZ
+        function playSentenceAudio(event) {
             event.stopPropagation();
             if (!currentCard || !currentCard.sentence) return;
+            speakText(currentCard.sentence, 0.92);
+        }
 
+        function speakText(text, rate) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
-                
-                const fullText = String(currentCard.sentence);
-                const utterance = new SpeechSynthesisUtterance(fullText);
+                const utterance = new SpeechSynthesisUtterance(String(text));
                 utterance.lang = 'en-US';
-                utterance.rate = 0.92;
-                
+                utterance.rate = rate;
                 window.speechSynthesis.speak(utterance);
-            } else {
-                alert("Sprachausgabe wird vom Browser nicht unterstützt.");
             }
         }
 
+        // STREAK ZÄHLT EXKLUSIV FÜR DIE FEINE KLINGE ('pro')
         function recordActivity() {
             const todayStr = new Date().toISOString().slice(0, 10);
             if (!userStats.history[todayStr]) {
@@ -564,21 +696,23 @@
             }
             userStats.history[todayStr]++;
 
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yestStr = yesterday.toISOString().slice(0, 10);
+            if (currentMode === 'pro') {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yestStr = yesterday.toISOString().slice(0, 10);
 
-            if (userStats.lastDate === yestStr || userStats.lastDate === todayStr) {
-                if (userStats.lastDate !== todayStr && userStats.history[todayStr] === 1) {
-                    userStats.streak++;
+                if (userStats.lastDate === yestStr || userStats.lastDate === todayStr) {
+                    if (userStats.lastDate !== todayStr) {
+                        userStats.streak++;
+                    }
+                } else if (userStats.lastDate !== todayStr) {
+                    userStats.streak = 1;
                 }
-            } else if (userStats.lastDate !== todayStr) {
-                userStats.streak = 1;
+                if (userStats.streak === 0) userStats.streak = 1;
+                userStats.lastDate = todayStr;
             }
-            if (userStats.streak === 0) userStats.streak = 1;
-            userStats.lastDate = todayStr;
 
-            localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
+            localStorage.setItem('vocab_stats_v14', JSON.stringify(userStats));
             updateStatsDisplay();
         }
 
@@ -590,7 +724,7 @@
 
             if (userStats.lastDate && userStats.lastDate !== todayStr && userStats.lastDate !== yestStr) {
                 userStats.streak = 0;
-                localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
+                localStorage.setItem('vocab_stats_v14', JSON.stringify(userStats));
             }
         }
 
@@ -614,7 +748,9 @@
         function startSession() {
             sessionCorrect = 0;
             activeQueue = [];
-            vocabulary.forEach(item => {
+            const modeItems = vocabulary.filter(v => v.category === currentMode);
+
+            modeItems.forEach(item => {
                 let weight = 4 - item.level;
                 if (weight < 1) weight = 1;
                 for (let i = 0; i < weight; i++) {
@@ -637,7 +773,7 @@
             document.getElementById('action-buttons').style.display = 'none';
 
             document.getElementById('card-example-text').classList.remove('visible');
-            document.getElementById('audio-back-btn').classList.remove('visible');
+            document.getElementById('audio-controls').classList.remove('visible');
 
             if (currentIndex >= activeQueue.length) {
                 showFinish();
@@ -645,6 +781,7 @@
             }
 
             currentCard = activeQueue[currentIndex];
+            document.getElementById('front-category-label').innerText = currentMode === 'pro' ? '🔥 Feine Klinge' : '🧠 Fundament C1';
             document.getElementById('progress-indicator').innerText = `Karte ${currentIndex + 1} von ${activeQueue.length}`;
             document.getElementById('box-indicator').innerText = `Level ${currentCard.level} / 3`;
             document.getElementById('front-question').innerText = currentCard.q;
@@ -685,7 +822,7 @@
 
             if (currentCard.sentence) {
                 document.getElementById('card-example-text').classList.add('visible');
-                document.getElementById('audio-back-btn').classList.add('visible');
+                document.getElementById('audio-controls').classList.add('visible');
             }
 
             const options = document.getElementById('back-options').children;
@@ -704,22 +841,27 @@
             }
 
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v14', JSON.stringify(userProgress));
 
             document.getElementById('action-buttons').style.display = 'flex';
         }
 
-        function rateAnswer(wasCorrect) {
+        function rateAnswer(action) {
             recordActivity();
             let vocabItem = vocabulary.find(v => v.id === currentCard.id);
-            if (wasCorrect) {
+
+            if (action === 'correct') {
                 if (vocabItem.level < 3) vocabItem.level++;
                 sessionCorrect++;
-            } else {
+            } else if (action === 'wrong') {
                 vocabItem.level = 1;
+            } else if (action === 'repeat') {
+                // Karte wird am Ende dieser Runde erneut eingereiht
+                activeQueue.push({...currentCard});
             }
+
             userProgress[vocabItem.id] = vocabItem.level;
-            localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
+            localStorage.setItem('vocab_progress_v14', JSON.stringify(userProgress));
 
             currentIndex++;
             loadCard();
@@ -751,8 +893,8 @@
                     if(parsed.progress) {
                         userProgress = parsed.progress;
                         userStats = parsed.stats || userStats;
-                        localStorage.setItem('vocab_progress_v13', JSON.stringify(userProgress));
-                        localStorage.setItem('vocab_stats_v13', JSON.stringify(userStats));
+                        localStorage.setItem('vocab_progress_v14', JSON.stringify(userProgress));
+                        localStorage.setItem('vocab_stats_v14', JSON.stringify(userStats));
                         vocabulary.forEach(item => {
                             if (userProgress[item.id] !== undefined) item.level = userProgress[item.id];
                         });
@@ -774,12 +916,13 @@
                     const newVocab = JSON.parse(e.target.result);
                     if (Array.isArray(newVocab) && newVocab.length > 0) {
                         vocabulary = newVocab;
-                        localStorage.setItem('vocab_data_v13', JSON.stringify(vocabulary));
+                        localStorage.setItem('vocab_data_v14', JSON.stringify(vocabulary));
                         vocabulary.forEach(item => {
+                            if (!item.category) item.category = "pro";
                             item.level = userProgress[item.id] !== undefined ? userProgress[item.id] : 1;
                         });
                         buildDictionary();
-                        alert(`Wörterbuch aktualisiert! (${vocabulary.length} Vokabeln)`);
+                        alert(`Wörterbuch aktualisiert! (${vocabulary.length} Einträge)`);
                         startSession();
                     }
                 } catch(err) { alert("Fehler beim Laden der words.json."); }
