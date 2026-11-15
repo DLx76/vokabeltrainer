@@ -1,4 +1,4 @@
-const CACHE = 'vt-englisch5-3.0';
+const CACHE = 'vt-englisch5-3.1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

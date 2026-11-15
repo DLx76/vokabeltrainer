@@ -20,6 +20,10 @@ h1{font-size:1.1rem;margin:0;color:var(--accent)}
 .hidden{display:none!important}
 .unit-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;scrollbar-width:none;flex-shrink:0}
 .unit-bar::-webkit-scrollbar{display:none}
+.page-bar{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-shrink:0;font-size:.82rem;color:var(--muted)}
+.page-bar input{width:72px;padding:6px 8px;text-align:center}
+.page-bar input.on{border-color:var(--primary)}
+.page-bar .mini-btn{padding:6px 10px}
 .chip{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:20px;padding:6px 12px;font-size:.8rem;font-weight:600;white-space:nowrap;cursor:pointer}
 .chip.active{background:var(--primary);color:var(--primary-text);border-color:var(--primary)}
 .nav-tabs{display:flex;gap:6px;margin-bottom:6px;flex-shrink:0}
@@ -107,6 +111,7 @@ label.field input,label.field select{margin-top:3px}
 <div class="container">
   <header><h1 id="app-title"></h1></header>
   <div class="unit-bar" id="unit-bar"></div>
+  <div class="page-bar hidden" id="page-bar">📖 Seite <input id="page-from" type="number" inputmode="numeric" placeholder="von"> bis <input id="page-to" type="number" inputmode="numeric" placeholder="bis"> <button class="mini-btn" id="page-clear">✕</button> <span id="page-info"></span></div>
   <nav class="nav-tabs">
     <button class="tab-btn active" data-tab="train">🎯 Üben (<span id="active-count">0</span>)</button>
     <button class="tab-btn" data-tab="words">📚 Wörter</button>
@@ -191,7 +196,7 @@ label.field input,label.field select{margin-top:3px}
     </div>
     <div class="panel">
       <h3>Wörter importieren</h3>
-      <p class="small">Datei aus LibreOffice (als <b>CSV</b> speichern) oder JSON. Spalten: <code>Englisch | Deutsch | Beispielsatz | Unit | Notiz</code> – nur die ersten zwei sind Pflicht. Doppelte Wörter werden übersprungen.</p>
+      <p class="small">Datei aus LibreOffice (als <b>CSV</b> speichern) oder JSON. Spalten: <code>Englisch | Deutsch | Beispielsatz | Unit | Notiz | Seite</code> – nur die ersten zwei sind Pflicht. Doppelte Wörter werden übersprungen, fehlende Angaben (z. B. Seite) aber ergänzt.</p>
       <label class="field">Unit für Zeilen ohne Unit-Angabe
         <input id="import-unit" placeholder="z. B. Unit 3">
       </label>
@@ -204,7 +209,7 @@ label.field input,label.field select{margin-top:3px}
         </details>
         <button class="mini-btn" id="btn-export-list">Wortliste exportieren (CSV für LibreOffice)</button>
       </div>
-      <input type="file" id="import-file" accept=".csv,.txt,.json,text/csv,text/plain,application/json" hidden>
+      <input type="file" id="import-file" hidden>
     </div>
     <div class="panel">
       <h3>Sichern</h3>
@@ -234,6 +239,7 @@ label.field input,label.field select{margin-top:3px}
     <label class="field">Beispielsatz (Englisch)<input id="f-sentence" autocomplete="off" autocapitalize="sentences"></label>
     <label class="field">Unit / Lektion<input id="f-unit" list="unit-list" autocomplete="off"></label>
     <datalist id="unit-list"></datalist>
+    <label class="field">Seite im Buch<input id="f-page" type="number" inputmode="numeric" autocomplete="off"></label>
     <label class="field">Notiz<input id="f-note" autocomplete="off"></label>
     <div class="stack">
       <div class="row">
@@ -249,12 +255,12 @@ label.field input,label.field select{margin-top:3px}
 
 <script>
 'use strict';
-const CONFIG = {"appId": "c1", "title": "C1-Gehirntraining Pro", "version": "3.0", "storagePrefix": "vt_c1_v3_", "legacy": {"prog": "c1_prog_v15", "checked": "c1_checked_v15", "stats": "c1_stats_v15"}, "defaultMode": "mc_en_de", "defaultAccent": "both", "fileBase": "c1", "praise": ["Richtig verankert ✨", "Präzise ✔", "Sitzt ✔", "Treffer ✔"], "finishTitles": ["Runde geschafft 🎯", "Sauber gearbeitet 🎯"]};
+const CONFIG = {"appId": "c1", "title": "C1-Gehirntraining Pro", "version": "3.1", "storagePrefix": "vt_c1_v3_", "legacy": {"prog": "c1_prog_v15", "checked": "c1_checked_v15", "stats": "c1_stats_v15"}, "defaultMode": "mc_en_de", "defaultAccent": "both", "fileBase": "c1", "praise": ["Richtig verankert ✨", "Präzise ✔", "Sitzt ✔", "Treffer ✔"], "finishTitles": ["Runde geschafft 🎯", "Sauber gearbeitet 🎯"]};
 const SEED = [{"id": 1, "en": "actually", "de": "tatsächlich, eigentlich", "sentence": "Actually, I had something else in mind.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet das Wort „actually“ im Englischen?", "options": ["aktuell, momentan", "tatsächlich, eigentlich", "amtlich, offiziell"], "correct": 1, "builtin": true}, {"id": 2, "en": "sensible", "de": "vernünftig, sinnvoll", "sentence": "It was a very sensible decision to make.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet das Wort „sensible“?", "options": ["sensibel, empfindsam", "vernünftig, sinnvoll", "spürbar, fühlbar"], "correct": 1, "builtin": true}, {"id": 3, "en": "to imply", "de": "andeuten, implizieren", "sentence": "His words seemed to imply some criticism.", "unit": "Feine Klinge", "note": "", "q": "Wie übersetzt man das Verb „to imply“ am präzisesten?", "options": ["annehmen, vermuten", "andeuten, implizieren", "widerspiegeln"], "correct": 1, "builtin": true}, {"id": 4, "en": "Actually, I had something else in mind", "de": "Actually, I had something else in mind.", "sentence": "Actually, I had something else in mind.", "unit": "Feine Klinge", "note": "", "q": "Wie drückt man aus: „Eigentlich hatte ich etwas anderes im Sinn“?", "options": ["Actually, I had something else in mind.", "Actually, I had planned this otherwise.", "Currently, I had another idea."], "correct": 0, "builtin": true}, {"id": 5, "en": "discuss this issue", "de": "We need to discuss this issue.", "sentence": "We need to discuss this important issue.", "unit": "Feine Klinge", "note": "", "q": "Welcher Satz ist grammatikalisch korrekt (Stichwort: ‚discuss‘)?", "options": ["We need to discuss about this issue.", "We need to discuss this issue.", "We need to discuss about this."], "correct": 1, "builtin": true}, {"id": 6, "en": "looking forward to seeing you", "de": "I am looking forward to seeing you.", "sentence": "I am looking forward to seeing you soon.", "unit": "Feine Klinge", "note": "", "q": "Wie heißt es korrekt nach „to look forward to“?", "options": ["I am looking forward to see you.", "I am looking forward to seeing you.", "I am looking forward see you."], "correct": 1, "builtin": true}, {"id": 7, "en": "economical", "de": "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "sentence": "This car is very economical on fuel.", "unit": "Feine Klinge", "note": "", "q": "Wie unterscheidet sich „economic“ von „economical“?", "options": ["Economic = wirtschaftlich/sparsam; Economical = auf die Wirtschaft bezogen", "Economic = auf die Volkswirtschaft bezogen; Economical = sparsam / wirtschaftlich im Verbrauch", "Es gibt keinen Unterschied."], "correct": 1, "builtin": true}, {"id": 8, "en": "currently", "de": "aktuell / derzeit", "sentence": "The market is currently prone to sudden changes.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet das englische Wort „currently“?", "options": ["aktuell / derzeit", "eigentlich", "konsequent"], "correct": 0, "builtin": true}, {"id": 9, "en": "to argue", "de": "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "sentence": "Experts argue that growth will continue.", "unit": "Feine Klinge", "note": "", "q": "Was unterscheidet „to argue“ von „to claim“ am ehesten?", "options": ["To claim = fundiert argumentieren; To argue = bloße Behauptung", "To argue = schlüssig argumentieren/darlegen; To claim = etwas (oft unbelegt) behaupten", "Es gibt keinen Bedeutungsunterschied."], "correct": 1, "builtin": true}, {"id": 10, "en": "It is widely assumed that", "de": "It is widely assumed that...", "sentence": "It is widely assumed that prices will rise.", "unit": "Feine Klinge", "note": "", "q": "Wie drückt man „Es wird allgemein angenommen, dass...“ im gehobenen Englisch aus?", "options": ["It is widely assumed that...", "One universally thinks that...", "People are generally guessing that..."], "correct": 0, "builtin": true}, {"id": 11, "en": "crucial", "de": "entscheidend, von allerhöchster Wichtigkeit", "sentence": "Communication is crucial for a team.", "unit": "Feine Klinge", "note": "", "q": "Welche Bedeutung hat das Adjektiv „crucial“?", "options": ["zufällig, nebensächlich", "entscheidend, von allerhöchster Wichtigkeit", "kritisch im Sinne von gefährlich krank"], "correct": 1, "builtin": true}, {"id": 12, "en": "Due to", "de": "Due to / Because of", "sentence": "Due to technical issues, we delayed the launch.", "unit": "Feine Klinge", "note": "", "q": "Wie verknüpft man „aufgrund von“ vor einer Nominalphrase korrekt?", "options": ["Due to / Because of", "Since / Therefore", "Consequently / As long as"], "correct": 0, "builtin": true}, {"id": 13, "en": "consequently", "de": "folglich, infolgedessen", "sentence": "She worked hard and consequently succeeded.", "unit": "Feine Klinge", "note": "", "q": "Welche Bedeutung hat das Wort „consequently“?", "options": ["gelegentlich, ab und zu", "folglich, infolgedessen", "beharrlich, starrsinnig"], "correct": 1, "builtin": true}, {"id": 14, "en": "should address", "de": "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "sentence": "You should address this issue on time.", "unit": "Feine Klinge", "note": "", "q": "Wie lautet die korrekte Konstruktion nach Modalverben wie „should“?", "options": ["Mit nachfolgendem „to“ (z.B. should to go)", "Direkt mit dem Infinitiv ohne „to“ (z.B. should go)", "Mit der ing-Form (z.B. should going)"], "correct": 1, "builtin": true}, {"id": 15, "en": "to shed light on", "de": "Licht ins Dunkel bringen / etwas beleuchten", "sentence": "This recent study sheds light on the causes.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet der Ausdruck „to shed light on...“?", "options": ["etwas vertuschen", "Licht ins Dunkel bringen / etwas beleuchten", "jemanden im Regen stehen lassen"], "correct": 1, "builtin": true}, {"id": 16, "en": "prone to", "de": "anfällig sein für / neigen zu", "sentence": "Complex systems are often prone to errors.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet es, wenn etwas oder jemand „prone to...“ ist?", "options": ["anfällig sein für / neigen zu", "stolz sein auf", "geschützt vor"], "correct": 0, "builtin": true}, {"id": 17, "en": "Provided that", "de": "Provided that...", "sentence": "Provided that we address the issue, all will go well.", "unit": "Feine Klinge", "note": "", "q": "Wie drückt man „Vorausgesetzt, dass...“ im gehobenen Englisch aus?", "options": ["Provided that...", "In case of that...", "As long as assuming..."], "correct": 0, "builtin": true}, {"id": 18, "en": "to be bound to", "de": "zwangsläufig / mit Sicherheit passieren", "sentence": "Such changes are bound to be risky.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet der Ausdruck „to be bound to...“?", "options": ["an etwas gefesselt sein", "zwangsläufig / mit Sicherheit passieren", "verpflichtet sein zu schweigen"], "correct": 1, "builtin": true}, {"id": 19, "en": "To a certain extent", "de": "To a certain extent...", "sentence": "To a certain extent, I agree with you.", "unit": "Feine Klinge", "note": "", "q": "Wie drückt man „Bis zu einem gewissen Grad...“ im gehobenen Englisch aus?", "options": ["To a certain extent...", "Up to a little limit...", "In some border..."], "correct": 0, "builtin": true}, {"id": 20, "en": "as opposed to", "de": "im Gegensatz zu...", "sentence": "As opposed to the past, we work more flexibly today.", "unit": "Feine Klinge", "note": "", "q": "Was bedeutet der Ausdruck „as opposed to...“?", "options": ["im Vergleich zu früher", "im Gegensatz zu...", "angenommen, dass..."], "correct": 1, "builtin": true}, {"id": 101, "en": "to ascertain", "de": "sich vergewissern, feststellen", "sentence": "The committee sought to ascertain the exact facts.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to ascertain“?", "options": ["etwas ablehnen", "sich vergewissern, feststellen", "vermuten"], "correct": 1, "builtin": true}, {"id": 102, "en": "comprehensive", "de": "umfassend, gründlich", "sentence": "We conducted a comprehensive review of the market.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „comprehensive“?", "options": ["unverständlich", "umfassend, gründlich", "kurz gefasst"], "correct": 1, "builtin": true}, {"id": 103, "en": "indispensable", "de": "unentbehrlich, unerlässlich", "sentence": "Reliable data is indispensable for our analysis.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „indispensable“?", "options": ["verzichtbar", "unentbehrlich, unerlässlich", "fragwürdig"], "correct": 1, "builtin": true}, {"id": 104, "en": "to encounter", "de": "auf etwas stoßen, begegnen", "sentence": "We might encounter some unexpected resistance.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to encounter“?", "options": ["auf etwas stoßen, begegnen", "etwas vermeiden", "etwas zählen"], "correct": 0, "builtin": true}, {"id": 105, "en": "demanding", "de": "anspruchsvoll, fordernd", "sentence": "The new management role is highly demanding.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „demanding“?", "options": ["einfach", "anspruchsvoll, fordernd", "langweilig"], "correct": 1, "builtin": true}, {"id": 106, "en": "to facilitate", "de": "erleichtern, ermöglichen", "sentence": "Modern technology helps to facilitate communication.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to facilitate“?", "options": ["erschweren", "erleichtern, ermöglichen", "verbieten"], "correct": 1, "builtin": true}, {"id": 107, "en": "subsequent", "de": "nachfolgend, später", "sentence": "Subsequent studies confirmed our initial hypothesis.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „subsequent“?", "options": ["vorhergehend", "nachfolgend, später", "gleichzeitig"], "correct": 1, "builtin": true}, {"id": 108, "en": "to emerge", "de": "hervorgehen, auftauchen", "sentence": "New patterns began to emerge from the data.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to emerge“?", "options": ["verschwinden", "hervorgehen, auftauchen", "scheitern"], "correct": 1, "builtin": true}, {"id": 109, "en": "significant", "de": "bedeutend, beträchtlich", "sentence": "There is a significant difference between both approaches.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „significant“?", "options": ["unbedeutend", "bedeutend, beträchtlich", "unsichtbar"], "correct": 1, "builtin": true}, {"id": 110, "en": "to assess", "de": "beurteilen, einschätzen", "sentence": "It is difficult to assess the long-term impact.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to assess“?", "options": ["beurteilen, einschätzen", "ignorieren", "besitzen"], "correct": 0, "builtin": true}, {"id": 111, "en": "to scrutinize", "de": "genau unter die Lupe nehmen, prüfen", "sentence": "The auditors scrutinized every single transaction.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to scrutinize“?", "options": ["überfliegen", "genau unter die Lupe nehmen, prüfen", "verstecken"], "correct": 1, "builtin": true}, {"id": 112, "en": "ambiguous", "de": "mehrdeutig, unklar", "sentence": "The wording of the contract is deliberately ambiguous.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „ambiguous“?", "options": ["eindeutig", "mehrdeutig, unklar", "ehrgeizig"], "correct": 1, "builtin": true}, {"id": 113, "en": "to alleviate", "de": "lindern, mildern, erleichtern", "sentence": "These measures are designed to alleviate the pressure.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to alleviate“?", "options": ["verschlimmern", "lindern, mildern, erleichtern", "erhöhen"], "correct": 1, "builtin": true}, {"id": 114, "en": "inevitable", "de": "unvermeidlich, unausweichlich", "sentence": "With rising costs, price adjustments became inevitable.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „inevitable“?", "options": ["vermeidbar", "unvermeidlich, unausweichlich", "unwahrscheinlich"], "correct": 1, "builtin": true}, {"id": 115, "en": "to substantiate", "de": "untermauern, belegen", "sentence": "You need solid evidence to substantiate your claim.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to substantiate“?", "options": ["widerlegen", "untermauern, belegen", "ersetzen"], "correct": 1, "builtin": true}, {"id": 116, "en": "feasible", "de": "machbar, durchführbar", "sentence": "We must check whether this timeline is technically feasible.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „feasible“?", "options": ["unmöglich", "machbar, durchführbar", "teuer"], "correct": 1, "builtin": true}, {"id": 117, "en": "to undermine", "de": "untergraben, schwächen", "sentence": "Constant criticism can undermine a team's confidence.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to undermine“?", "options": ["stärken", "untergraben, schwächen", "unterstreichen"], "correct": 1, "builtin": true}, {"id": 118, "en": "reluctant", "de": "zögerlich, widerwillig", "sentence": "Many investors are currently reluctant to take risks.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „reluctant“?", "options": ["begeistert", "zögerlich, widerwillig", "zuverlässig"], "correct": 1, "builtin": true}, {"id": 119, "en": "to allocate", "de": "zuweisen, zuteilen", "sentence": "We must allocate our budget more efficiently next year.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to allocate“?", "options": ["zuweisen, zuteilen", "streichen", "sammeln"], "correct": 0, "builtin": true}, {"id": 120, "en": "coherent", "de": "schlüssig, zusammenhängend", "sentence": "She presented a clear and coherent argument.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „coherent“?", "options": ["widersprüchlich", "schlüssig, zusammenhängend", "verwirrend"], "correct": 1, "builtin": true}, {"id": 121, "en": "to diverge", "de": "auseinandergehen, abweichen", "sentence": "Their opinions on the matter began to diverge.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to diverge“?", "options": ["zusammenlaufen", "auseinandergehen, abweichen", "zustimmen"], "correct": 1, "builtin": true}, {"id": 122, "en": "to deter", "de": "abschrecken, abhalten", "sentence": "Higher prices may deter potential buyers.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to deter“?", "options": ["ermutigen", "abschrecken, abhalten", "beschleunigen"], "correct": 1, "builtin": true}, {"id": 123, "en": "vulnerable", "de": "anfällig, verwundbar, gefährdet", "sentence": "Small businesses are particularly vulnerable to market shifts.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „vulnerable“?", "options": ["unverwundbar", "anfällig, verwundbar, gefährdet", "wertvoll"], "correct": 1, "builtin": true}, {"id": 124, "en": "to advocate", "de": "befürworten, sich einsetzen für", "sentence": "She publicly advocates for sustainable energy policies.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to advocate“?", "options": ["bekämpfen", "befürworten, sich einsetzen für", "kritisieren"], "correct": 1, "builtin": true}, {"id": 125, "en": "to trigger", "de": "auslösen, in Gang setzen", "sentence": "The announcement triggered a wave of reactions.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to trigger“?", "options": ["stoppen", "auslösen, in Gang setzen", "verzögern"], "correct": 1, "builtin": true}, {"id": 126, "en": "proficient", "de": "bewandert, geübt, fließend", "sentence": "He is proficient in three foreign languages.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „proficient“?", "options": ["unerfahren", "bewandert, geübt, fließend", "profitabel"], "correct": 1, "builtin": true}, {"id": 127, "en": "to evaluate", "de": "bewerten, auswerten", "sentence": "We need to evaluate the risks before making a decision.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to evaluate“?", "options": ["bewerten, auswerten", "entwickeln", "übersehen"], "correct": 0, "builtin": true}, {"id": 128, "en": "to pursue", "de": "verfolgen (Ziele, Pläne)", "sentence": "She decided to pursue a career in international law.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to pursue“?", "options": ["aufgeben", "verfolgen (Ziele, Pläne)", "vermeiden"], "correct": 1, "builtin": true}, {"id": 129, "en": "to enhance", "de": "verbessern, steigern, aufwerten", "sentence": "New software can enhance productivity significantly.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to enhance“?", "options": ["verschlechtern", "verbessern, steigern, aufwerten", "verkleinern"], "correct": 1, "builtin": true}, {"id": 130, "en": "to perceive", "de": "wahrnehmen, empfinden", "sentence": "Consumers perceive the brand as high quality.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to perceive“?", "options": ["wahrnehmen, empfinden", "verpassen", "überzeugen"], "correct": 0, "builtin": true}, {"id": 131, "en": "relevant", "de": "relevant, sachdienlich, treffend", "sentence": "Please provide only relevant information.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „relevant“?", "options": ["belanglos", "relevant, sachdienlich, treffend", "veraltet"], "correct": 1, "builtin": true}, {"id": 132, "en": "to resolve", "de": "lösen (Problem, Konflikt)", "sentence": "We must resolve this issue by tomorrow.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to resolve“?", "options": ["lösen (Problem, Konflikt)", "verursachen", "verschieben"], "correct": 0, "builtin": true}, {"id": 133, "en": "to substitute", "de": "ersetzen, austauschen", "sentence": "You can substitute butter with oil in this recipe.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to substitute“?", "options": ["hinzufügen", "ersetzen, austauschen", "behalten"], "correct": 1, "builtin": true}, {"id": 134, "en": "to sustain", "de": "aufrechterhalten, stützen", "sentence": "Can the company sustain this rapid growth rate?", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to sustain“?", "options": ["beenden", "aufrechterhalten, stützen", "unterbrechen"], "correct": 1, "builtin": true}, {"id": 135, "en": "to compile", "de": "zusammenstellen, zusammentragen", "sentence": "He spent several days compiling the annual report.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to compile“?", "options": ["löschen", "zusammenstellen, zusammentragen", "verteilen"], "correct": 1, "builtin": true}, {"id": 136, "en": "to contend", "de": "behaupten, kämpfen (mit)", "sentence": "Economists contend that the market will soon recover.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to contend“?", "options": ["zustimmen", "behaupten, kämpfen (mit)", "schweigen"], "correct": 1, "builtin": true}, {"id": 137, "en": "diverse", "de": "verschiedenartig, vielfältig", "sentence": "Our team has a very diverse professional background.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „diverse“?", "options": ["eintönig", "verschiedenartig, vielfältig", "geteilt"], "correct": 1, "builtin": true}, {"id": 138, "en": "to outweigh", "de": "überwiegen, schwerer wiegen als", "sentence": "The long-term benefits far outweigh the initial risks.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to outweigh“?", "options": ["unterlegen sein", "überwiegen, schwerer wiegen als", "wiegen"], "correct": 1, "builtin": true}, {"id": 139, "en": "to reflect", "de": "widerspiegeln, überlegen", "sentence": "The latest figures reflect a very positive trend.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to reflect“?", "options": ["verbergen", "widerspiegeln, überlegen", "ablehnen"], "correct": 1, "builtin": true}, {"id": 140, "en": "substantial", "de": "beträchtlich, wesentlich, substanziell", "sentence": "They made a substantial investment in renewable energy.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „substantial“?", "options": ["geringfügig", "beträchtlich, wesentlich, substanziell", "oberflächlich"], "correct": 1, "builtin": true}, {"id": 141, "en": "to diminish", "de": "verringern, schmälern, abnehmen", "sentence": "Nothing can diminish the value of his contribution.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to diminish“?", "options": ["vergrößern", "verringern, schmälern, abnehmen", "verdoppeln"], "correct": 1, "builtin": true}, {"id": 142, "en": "concurrent", "de": "gleichzeitig, parallel laufend", "sentence": "The manager is handling three concurrent projects.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „concurrent“?", "options": ["nacheinander", "gleichzeitig, parallel laufend", "widersprüchlich"], "correct": 1, "builtin": true}, {"id": 143, "en": "to foster", "de": "fördern, pflegen, begünstigen", "sentence": "We want to foster a culture of open feedback.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to foster“?", "options": ["behindern", "fördern, pflegen, begünstigen", "verbieten"], "correct": 1, "builtin": true}, {"id": 144, "en": "redundant", "de": "überflüssig, entbehrlich", "sentence": "Automation has made several manual steps redundant.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „redundant“?", "options": ["unverzichtbar", "überflüssig, entbehrlich", "neu"], "correct": 1, "builtin": true}, {"id": 145, "en": "to verify", "de": "überprüfen, verifizieren, bestätigen", "sentence": "Please verify all figures before publishing the report.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to verify“?", "options": ["fälschen", "überprüfen, verifizieren, bestätigen", "anzweifeln"], "correct": 1, "builtin": true}, {"id": 146, "en": "plausible", "de": "einleuchtend, glaubhaft, plausibel", "sentence": "She offered a very plausible explanation for the delay.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „plausible“?", "options": ["unglaubwürdig", "einleuchtend, glaubhaft, plausibel", "unmöglich"], "correct": 1, "builtin": true}, {"id": 147, "en": "to convey", "de": "vermitteln, überbringen (Botschaft)", "sentence": "His tone of voice conveyed a sense of urgency.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to convey“?", "options": ["verheimlichen", "vermitteln, überbringen (Botschaft)", "verweigern"], "correct": 1, "builtin": true}, {"id": 148, "en": "arbitrary", "de": "willkürlich, beliebig", "sentence": "The selection criteria seemed completely arbitrary.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „arbitrary“?", "options": ["durchdacht", "willkürlich, beliebig", "streng"], "correct": 1, "builtin": true}, {"id": 149, "en": "to comply with", "de": "befolgen, einhalten (Regeln, Gesetze)", "sentence": "All suppliers must comply with strict safety standards.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „to comply with“?", "options": ["verstoßen gegen", "befolgen, einhalten (Regeln, Gesetze)", "ignorieren"], "correct": 1, "builtin": true}, {"id": 150, "en": "resilient", "de": "widerstandsfähig, belastbar", "sentence": "A resilient supply chain can withstand sudden disruptions.", "unit": "Fundament C1", "note": "", "q": "Was bedeutet „resilient“?", "options": ["zerbrechlich", "widerstandsfähig, belastbar", "empfindlich"], "correct": 1, "builtin": true}];
 const K = CONFIG.storagePrefix;
 const $ = id => document.getElementById(id);
 const WEIGHT = {1: 4, 2: 2, 3: 1};
-const DEFAULT_SETTINGS = {mode: CONFIG.defaultMode, roundSize: 10, accent: CONFIG.defaultAccent, unit: '__all__', lastUnit: '', lastBackup: ''};
+const DEFAULT_SETTINGS = {mode: CONFIG.defaultMode, roundSize: 10, accent: CONFIG.defaultAccent, unit: '__all__', lastUnit: '', lastBackup: '', pageFrom: '', pageTo: ''};
 
 const store = {
   get(k, def) { try { const v = localStorage.getItem(K + k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
@@ -276,7 +282,15 @@ function newId() { idCounter++; return 'u' + Date.now().toString(36) + idCounter
 function wordById(id) { return words.find(w => String(w.id) === String(id)); }
 function level(w) { return progress[w.id] || 1; }
 function isActive(w) { return active[w.id] !== false; }
-function inUnit(w) { return settings.unit === '__all__' || (w.unit || '') === settings.unit; }
+function pageNum(w) { const n = parseInt(w.page, 10); return isNaN(n) ? null : n; }
+function pageFilterOn() { return settings.pageFrom !== '' || settings.pageTo !== ''; }
+function inPages(w) {
+  if (!pageFilterOn()) return true;
+  const n = pageNum(w); if (n === null) return false;
+  const a = settings.pageFrom === '' ? -Infinity : Number(settings.pageFrom), b = settings.pageTo === '' ? Infinity : Number(settings.pageTo);
+  return n >= Math.min(a, b) && n <= Math.max(a, b);
+}
+function inUnit(w) { return (settings.unit === '__all__' || (w.unit || '') === settings.unit) && inPages(w); }
 function pool() { return words.filter(w => inUnit(w) && isActive(w)); }
 function masteredCount() { return words.filter(w => level(w) === 3).length; }
 function saveWords() { store.set('words', words); }
@@ -338,9 +352,28 @@ function renderUnits() {
     bar.appendChild(b);
   };
   mk('__all__', 'Alle');
+  renderPageBar();
   us.forEach(u => mk(u, u));
   const dl = $('unit-list'); dl.innerHTML = '';
   us.forEach(u => { const o = el('option'); o.value = u; dl.appendChild(o); });
+}
+function renderPageBar() {
+  const has = words.some(w => pageNum(w) !== null);
+  $('page-bar').classList.toggle('hidden', !has && !pageFilterOn());
+  const f = $('page-from'), t = $('page-to');
+  if (document.activeElement !== f) f.value = settings.pageFrom;
+  if (document.activeElement !== t) t.value = settings.pageTo;
+  f.classList.toggle('on', settings.pageFrom !== ''); t.classList.toggle('on', settings.pageTo !== '');
+  $('page-clear').classList.toggle('hidden', !pageFilterOn());
+  $('page-info').textContent = pageFilterOn() ? words.filter(inUnit).length + ' Wörter' : '';
+}
+function setPages() {
+  const clean = v => { v = String(v).trim(); const n = parseInt(v, 10); return isNaN(n) ? '' : String(n); };
+  settings.pageFrom = clean($('page-from').value); settings.pageTo = clean($('page-to').value);
+  if (settings.pageFrom !== '' && settings.pageTo === '' ) { /* nur von: bis Ende */ }
+  saveSettings(); roundDirty = true; renderPageBar(); renderCount();
+  if (currentTab === 'words') renderWords();
+  if (currentTab === 'train') startRound();
 }
 function renderCount() { $('active-count').textContent = pool().length; }
 function currentStreak() { const t = dayStr(), y = addDays(-1); return (stats.lastDate === t || stats.lastDate === y) ? stats.streak : 0; }
@@ -412,7 +445,8 @@ function flip(state) { $('flashcard').classList.toggle('is-flipped', state); }
 function distractors(w, field, k) {
   const val = norm(w[field]), seen = new Set([val]);
   const cands = words.filter(x => String(x.id) !== String(w.id) && x[field] && !seen.has(norm(x[field])));
-  const ordered = shuffle(cands.filter(x => x.unit === w.unit)).concat(shuffle(cands.filter(x => x.unit !== w.unit)));
+  const inPool = new Set(pool().map(x => String(x.id)));
+  const ordered = shuffle(cands.filter(x => inPool.has(String(x.id)))).concat(shuffle(cands.filter(x => !inPool.has(String(x.id)) && x.unit === w.unit)), shuffle(cands.filter(x => !inPool.has(String(x.id)) && x.unit !== w.unit)));
   const out = [];
   for (const x of ordered) { const v = norm(x[field]); if (seen.has(v)) continue; seen.add(v); out.push(x[field]); if (out.length >= k) break; }
   return out;
@@ -505,7 +539,7 @@ function reveal() {
   row.append(no, yes); a.appendChild(row);
 }
 function normAns(s) {
-  return String(s || '').toLowerCase().replace(/[’‘`´]/g, "'").replace(/[.!?,;:"„“”()]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^to /, '');
+  return String(s || '').toLowerCase().replace(/[’‘`´]/g, "'").replace(/[.!?,;:"„“”()]/g, ' ').replace(/\s+/g, ' ').trim().replace(/^\(?to\)? /, '').replace(/^(a|an) /, '');
 }
 function lev(a, b) {
   const m = a.length, n = b.length; if (Math.abs(m - n) > 1) return 2;
@@ -599,7 +633,7 @@ function renderWords() {
     const cb = el('div', 'check-box', on ? '✓' : '');
     const content = el('div', 'dict-content');
     const top = el('div', 'dict-top');
-    top.append(el('span', 'dict-word', w.en), el('span', 'dict-badge', w.unit || '–'));
+    top.append(el('span', 'dict-word', w.en), el('span', 'dict-badge', (w.unit || '–') + (pageNum(w) !== null ? ' · S. ' + pageNum(w) : '')));
     const lv = level(w);
     content.append(top, el('div', 'dict-meaning', w.de), el('div', 'lvl', '★'.repeat(lv) + '☆'.repeat(3 - lv)));
     item.append(cb, content);
@@ -627,6 +661,7 @@ function openEditor(id) {
   $('modal-title').textContent = w ? 'Wort bearbeiten' : 'Neues Wort';
   $('f-en').value = w ? w.en : ''; $('f-de').value = w ? w.de : '';
   $('f-sentence').value = w ? (w.sentence || '') : ''; $('f-note').value = w ? (w.note || '') : '';
+  $('f-page').value = w ? (w.page || '') : (settings.lastPage || '');
   $('f-unit').value = w ? (w.unit || '') : (settings.unit !== '__all__' ? settings.unit : (settings.lastUnit || ''));
   $('f-delete').classList.toggle('hidden', !w);
   $('f-next').classList.toggle('hidden', !!w);
@@ -637,13 +672,13 @@ function closeEditor() { $('modal').classList.add('hidden'); editingId = null; }
 function saveEditor(andNext) {
   const en = $('f-en').value.trim(), de = $('f-de').value.trim();
   if (!en || !de) { toast('Bitte Englisch und Deutsch ausfüllen.'); return; }
-  const data = {en, de, sentence: $('f-sentence').value.trim(), unit: $('f-unit').value.trim() || 'Eigene Wörter', note: $('f-note').value.trim()};
+  const data = {en, de, sentence: $('f-sentence').value.trim(), unit: $('f-unit').value.trim() || 'Eigene Wörter', note: $('f-note').value.trim(), page: $('f-page').value.trim()};
   if (editingId) Object.assign(wordById(editingId), data);
   else {
     if (words.some(x => norm(x.en) === norm(en) && norm(x.unit) === norm(data.unit)) && !confirm('„' + en + '“ gibt es in dieser Unit schon. Trotzdem anlegen?')) return;
     words.push(Object.assign({id: newId()}, data));
   }
-  settings.lastUnit = data.unit; saveSettings(); saveWords();
+  settings.lastUnit = data.unit; settings.lastPage = data.page; saveSettings(); saveWords();
   roundDirty = true; renderUnits(); renderCount(); renderStats(); if (currentTab === 'words') renderWords();
   if (andNext) { ['f-en', 'f-de', 'f-sentence', 'f-note'].forEach(i => $(i).value = ''); toast('Gespeichert ✔ – nächstes Wort'); $('f-en').focus(); }
   else closeEditor();
@@ -682,7 +717,7 @@ function rowsToWords(rows, defUnit) {
     if (r[0].startsWith('#')) return;
     if (i === 0 && /^(englisch|english|en|wort)$/i.test(r[0])) return;
     if (!r[0] || !r[1]) { skipped++; return; }
-    out.push({en: r[0], de: r[1], sentence: r[2] || '', unit: r[3] || defUnit || 'Eigene Wörter', note: r[4] || ''});
+    out.push({en: r[0], de: r[1], sentence: r[2] || '', unit: r[3] || defUnit || 'Eigene Wörter', note: r[4] || '', page: (r[5] || '').replace(/\D/g, '')});
   });
   return {out, skipped};
 }
@@ -695,19 +730,25 @@ function jsonToWords(data, defUnit) {
     const en = String(x.en || x.englisch || x.english || x.word || '').trim();
     const de = String(x.de || x.deutsch || x.german || '').trim();
     if (!en || !de) { skipped++; return; }
-    out.push({en, de, sentence: String(x.sentence || x.satz || x.beispiel || '').trim(), unit: String(x.unit || defUnit || 'Eigene Wörter').trim(), note: String(x.note || x.notiz || '').trim()});
+    out.push({en, de, sentence: String(x.sentence || x.satz || x.beispiel || '').trim(), unit: String(x.unit || defUnit || 'Eigene Wörter').trim(), note: String(x.note || x.notiz || '').trim(), page: String(x.page || x.seite || '').replace(/\D/g, '')});
   });
   return {out, skipped};
 }
 function addImported(res) {
   if (!res || !res.out.length) { toast('Keine gültigen Einträge gefunden. Spalte A = Englisch, Spalte B = Deutsch.'); return; }
-  let added = 0, dupes = 0;
+  let added = 0, dupes = 0, filled = 0;
   res.out.forEach(n => {
-    if (words.some(x => norm(x.en) === norm(n.en) && norm(x.unit) === norm(n.unit))) { dupes++; return; }
+    const ex = words.find(x => norm(x.en) === norm(n.en) && norm(x.unit) === norm(n.unit));
+    if (ex) {
+      let ch = false;
+      ['page', 'sentence', 'note'].forEach(k => { if (n[k] && !ex[k]) { ex[k] = n[k]; ch = true; } });
+      if (ch) filled++; else dupes++;
+      return;
+    }
     words.push(Object.assign({id: newId()}, n)); added++;
   });
   saveWords(); roundDirty = true; renderAll();
-  toast(added + ' Wörter importiert' + (dupes ? ', ' + dupes + ' doppelte übersprungen' : '') + (res.skipped ? ', ' + res.skipped + ' unvollständige Zeile(n)' : ''));
+  toast(added + ' Wörter importiert' + (filled ? ', ' + filled + ' ergänzt (z. B. Seite)' : '') + (dupes ? ', ' + dupes + ' doppelte übersprungen' : '') + (res.skipped ? ', ' + res.skipped + ' unvollständige Zeile(n)' : ''));
 }
 function importText(text, fileName) {
   const defUnit = $('import-unit').value.trim();
@@ -732,7 +773,7 @@ function readFile(file, cb) {
 }
 function csvField(s) { s = String(s == null ? '' : s); return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
 function exportList() {
-  const lines = ['Englisch;Deutsch;Beispielsatz;Unit;Notiz'].concat(words.map(w => [w.en, w.de, w.sentence, w.unit, w.note].map(csvField).join(';')));
+  const lines = ['Englisch;Deutsch;Beispielsatz;Unit;Notiz;Seite'].concat(words.map(w => [w.en, w.de, w.sentence, w.unit, w.note, w.page].map(csvField).join(';')));
   download(CONFIG.fileBase + '_wortliste_' + dayStr() + '.csv', '﻿' + lines.join('\r\n'), 'text/csv');
 }
 function sanitizeProgress(p) { const o = {}; Object.keys(p || {}).forEach(k => { const v = Math.round(Number(p[k])); if (v >= 1 && v <= 3) o[k] = v; }); return o; }
@@ -808,6 +849,9 @@ function bindEvents() {
   $('front-speak').onclick = e => { e.stopPropagation(); if (cur) speak(cur.w.en, accentLangs()[0], 0.85); };
   $('btn-next-round').onclick = () => { roundDirty = true; startRound(); };
   $('search').oninput = renderWords;
+  $('page-from').onchange = setPages; $('page-to').onchange = setPages;
+  $('page-from').onkeydown = $('page-to').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+  $('page-clear').onclick = () => { $('page-from').value = ''; $('page-to').value = ''; setPages(); };
   $('btn-new').onclick = () => openEditor(null);
   $('btn-all-on').onclick = () => toggleVisible(true);
   $('btn-all-off').onclick = () => toggleVisible(false);
