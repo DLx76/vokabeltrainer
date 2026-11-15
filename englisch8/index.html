@@ -166,6 +166,7 @@ label.field input,label.field select{margin-top:3px}
       <span class="small" id="words-info"></span>
       <button class="mini-btn" id="btn-all-on">Alle an</button>
       <button class="mini-btn" id="btn-all-off">Alle aus</button>
+      <button class="mini-btn" id="btn-del-visible" title="Angezeigte Wörter löschen">🗑</button>
     </div>
     <div class="dictionary-list" id="dictionary-container"></div>
   </section>
@@ -251,12 +252,18 @@ label.field input,label.field select{margin-top:3px}
     </div>
   </div>
 </div>
+<div id="ask" class="modal hidden">
+  <div class="modal-box">
+    <p id="ask-text" style="margin:0 0 14px;line-height:1.4"></p>
+    <div class="row"><button class="btn btn-ghost" id="ask-no">Abbrechen</button><button class="btn" id="ask-yes">OK</button></div>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 <script>
 'use strict';
-const CONFIG = {"appId": "englisch8", "title": "Englisch 8", "version": "3.1", "storagePrefix": "vt_k8_v3_", "legacy": {"prog": "kids_k8_v2_prog", "checked": "kids_k8_v2_checked", "stats": "kids_k8_v2_stats"}, "defaultMode": "mc_en_de", "defaultAccent": "us", "fileBase": "englisch8", "praise": ["Stark! 🚀", "Richtig! ✔", "Läuft! 🔥", "Sauber! 🎯"], "finishTitles": ["Stark gelöst! 🎯", "Runde durch! 🚀"]};
-const SEED = [{"id": 801, "en": "skyscraper", "de": "Wolkenkratzer", "sentence": "The New York skyline is famous for its huge skyscrapers.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 802, "en": "ancestor", "de": "Vorfahre / Vorfahrin", "sentence": "Many Americans have ancestors from Europe.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 803, "en": "to immigrate", "de": "einwandern", "sentence": "Millions of people immigrated to the US in the 19th century.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 804, "en": "opportunity", "de": "Gelegenheit, Chance", "sentence": "This exchange year is a great opportunity.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 805, "en": "diversity", "de": "Vielfalt, Diversität", "sentence": "Cultural diversity shapes life in big cities.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 806, "en": "to settle", "de": "sich niederlassen / besiedeln", "sentence": "Pioneers moved west to settle new land.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 807, "en": "indigenous", "de": "eingeboren, indigen", "sentence": "Native Americans are the indigenous people of the land.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 808, "en": "civil rights", "de": "Bürgerrechte", "sentence": "Martin Luther King fought for civil rights.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 809, "en": "segregation", "de": "Rassentrennung", "sentence": "Segregation separated black and white people.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 810, "en": "to protest", "de": "demonstrieren, protestieren", "sentence": "Citizens gathered to protest against unfair laws.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 811, "en": "courage", "de": "Mut, Zivilcourage", "sentence": "It took a lot of courage to speak out.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 812, "en": "to achieve", "de": "erreichen, erzielen", "sentence": "They worked hard to achieve their goals.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 813, "en": "environment", "de": "Umwelt", "sentence": "We must protect our natural environment.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 814, "en": "sustainable", "de": "nachhaltig", "sentence": "Sustainable energy is essential for the future.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 815, "en": "to consume", "de": "konsumieren, verbrauchen", "sentence": "People tend to consume too much plastic.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 816, "en": "renewable", "de": "erneuerbar", "sentence": "Solar power is a renewable source of energy.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 817, "en": "reliable", "de": "zuverlässig", "sentence": "You need a reliable internet connection.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 818, "en": "to influence", "de": "beeinflussen", "sentence": "Social media can heavily influence teenagers.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 819, "en": "consequence", "de": "Konsequenz, Folge", "sentence": "Every action has a consequence.", "unit": "Startwörter", "note": "", "seed": true}, {"id": 820, "en": "achievement", "de": "Leistung, Errungenschaft", "sentence": "Landing on the moon was a great achievement.", "unit": "Startwörter", "note": "", "seed": true}];
+const CONFIG = {"appId": "englisch8", "title": "Englisch 8", "version": "3.2", "storagePrefix": "vt_k8_v3_", "legacy": {"prog": "kids_k8_v2_prog", "checked": "kids_k8_v2_checked", "stats": "kids_k8_v2_stats"}, "defaultMode": "mc_en_de", "defaultAccent": "us", "fileBase": "englisch8", "praise": ["Stark! 🚀", "Richtig! ✔", "Läuft! 🔥", "Sauber! 🎯"], "finishTitles": ["Stark gelöst! 🎯", "Runde durch! 🚀"]};
+const SEED = [];
 const K = CONFIG.storagePrefix;
 const $ = id => document.getElementById(id);
 const WEIGHT = {1: 4, 2: 2, 3: 1};
@@ -277,6 +284,14 @@ function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.fl
 function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
 function norm(s) { return String(s == null ? '' : s).toLowerCase().trim(); }
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+function ask(msg, yesLabel) {
+  return new Promise(res => {
+    $('ask-text').textContent = msg; $('ask-yes').textContent = yesLabel || 'OK';
+    $('ask').classList.remove('hidden');
+    const done = v => { $('ask').classList.add('hidden'); $('ask-yes').onclick = $('ask-no').onclick = null; res(v); };
+    $('ask-yes').onclick = () => done(true); $('ask-no').onclick = () => done(false);
+  });
+}
 function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 3000); }
 function newId() { idCounter++; return 'u' + Date.now().toString(36) + idCounter.toString(36) + Math.random().toString(36).slice(2, 5); }
 function wordById(id) { return words.find(w => String(w.id) === String(id)); }
@@ -669,13 +684,13 @@ function openEditor(id) {
   if (!w) setTimeout(() => $('f-en').focus(), 60);
 }
 function closeEditor() { $('modal').classList.add('hidden'); editingId = null; }
-function saveEditor(andNext) {
+async function saveEditor(andNext) {
   const en = $('f-en').value.trim(), de = $('f-de').value.trim();
   if (!en || !de) { toast('Bitte Englisch und Deutsch ausfüllen.'); return; }
   const data = {en, de, sentence: $('f-sentence').value.trim(), unit: $('f-unit').value.trim() || 'Eigene Wörter', note: $('f-note').value.trim(), page: $('f-page').value.trim()};
   if (editingId) Object.assign(wordById(editingId), data);
   else {
-    if (words.some(x => norm(x.en) === norm(en) && norm(x.unit) === norm(data.unit)) && !confirm('„' + en + '“ gibt es in dieser Unit schon. Trotzdem anlegen?')) return;
+    if (words.some(x => norm(x.en) === norm(en) && norm(x.unit) === norm(data.unit)) && !(await ask('„' + en + '“ gibt es in dieser Unit schon. Trotzdem anlegen?', 'Anlegen'))) return;
     words.push(Object.assign({id: newId()}, data));
   }
   settings.lastUnit = data.unit; settings.lastPage = data.page; saveSettings(); saveWords();
@@ -683,9 +698,9 @@ function saveEditor(andNext) {
   if (andNext) { ['f-en', 'f-de', 'f-sentence', 'f-note'].forEach(i => $(i).value = ''); toast('Gespeichert ✔ – nächstes Wort'); $('f-en').focus(); }
   else closeEditor();
 }
-function deleteWord() {
+async function deleteWord() {
   const w = wordById(editingId); if (!w) return;
-  if (!confirm('„' + w.en + '“ wirklich löschen?')) return;
+  if (!(await ask('„' + w.en + '“ wirklich löschen?', 'Löschen'))) return;
   words = words.filter(x => x !== w); delete progress[w.id]; delete active[w.id];
   saveAll(); closeEditor(); roundDirty = true; renderAll(); renderWords();
 }
@@ -783,10 +798,10 @@ function exportBackup() {
   download(CONFIG.fileBase + '_backup_' + dayStr() + '.json', JSON.stringify(data), 'application/json');
   renderMore(); renderStats();
 }
-function importBackup(text) {
+async function importBackup(text) {
   let d; try { d = JSON.parse(text); } catch (e) { toast('Die Datei ist kein gültiges Backup.'); return; }
   if (d && !d.words && d.progress && typeof d.progress === 'object') {
-    if (!confirm('Altes Backup gefunden. Lernstand übernehmen?')) return;
+    if (!(await ask('Altes Backup gefunden. Lernstand übernehmen?', 'Übernehmen'))) return;
     progress = sanitizeProgress(d.progress);
     if (d.checked) { active = {}; Object.keys(d.checked).forEach(k => { if (!d.checked[k]) active[k] = false; }); }
     if (d.stats && d.stats.history) stats = {history: d.stats.history, streak: d.stats.streak || 0, lastDate: d.stats.lastDate || ''};
@@ -794,7 +809,7 @@ function importBackup(text) {
   }
   if (!d || d.app !== CONFIG.appId) { toast('Dieses Backup gehört zu einer anderen App – nichts geändert.'); return; }
   if (!Array.isArray(d.words) || !d.words.every(w => w && typeof w.en === 'string' && typeof w.de === 'string')) { toast('Backup beschädigt – nichts geändert.'); return; }
-  if (!confirm('Backup vom ' + formatDate(String(d.exported || '').slice(0, 10)) + ' laden? Der aktuelle Stand auf diesem Gerät wird ersetzt.')) return;
+  if (!(await ask('Backup vom ' + formatDate(String(d.exported || '').slice(0, 10)) + ' laden? Der aktuelle Stand auf diesem Gerät wird ersetzt.', 'Laden'))) return;
   words = d.words; progress = sanitizeProgress(d.progress);
   active = d.active && typeof d.active === 'object' ? d.active : {};
   stats = Object.assign({history: {}, streak: 0, lastDate: ''}, d.stats || {});
@@ -811,7 +826,7 @@ function renderMore() {
   const own = words.length;
   $('backup-info').textContent = (settings.lastBackup ? 'Letzte Sicherung: ' + formatDate(settings.lastBackup) + '. ' : 'Noch nie gesichert. ') +
     own + ' Wörter auf diesem Gerät. Sichere regelmäßig – das Backup kannst du auch auf ein anderes Handy übertragen.';
-  $('btn-remove-seed').classList.toggle('hidden', !words.some(w => w.seed));
+  $('btn-remove-seed').classList.toggle('hidden', !words.some(w => w.seed || w.unit === 'Startwörter'));
 }
 function setupVoices() {
   if (!('speechSynthesis' in window)) return;
@@ -855,6 +870,15 @@ function bindEvents() {
   $('btn-new').onclick = () => openEditor(null);
   $('btn-all-on').onclick = () => toggleVisible(true);
   $('btn-all-off').onclick = () => toggleVisible(false);
+  $('btn-del-visible').onclick = async () => {
+    const list = filteredWords(); if (!list.length) return;
+    const what = (settings.unit !== '__all__' ? '„' + settings.unit + '“' : 'alle Units') + (pageFilterOn() ? ', Seite ' + (settings.pageFrom || '…') + '–' + (settings.pageTo || '…') : '') + ($('search').value.trim() ? ', Suche „' + $('search').value.trim() + '“' : '');
+    if (!(await ask(list.length + ' angezeigte Wörter löschen (' + what + ')? Das lässt sich nur über ein Backup rückgängig machen.', 'Löschen'))) return;
+    const ids = new Set(list.map(w => String(w.id)));
+    ids.forEach(id => { delete progress[id]; delete active[id]; });
+    words = words.filter(w => !ids.has(String(w.id)));
+    saveAll(); roundDirty = true; renderAll(); renderWords(); toast(list.length + ' Wörter gelöscht.');
+  };
   $('f-cancel').onclick = closeEditor;
   $('f-save').onclick = () => saveEditor(false);
   $('f-next').onclick = () => saveEditor(true);
@@ -872,11 +896,12 @@ function bindEvents() {
   $('btn-backup').onclick = exportBackup;
   $('btn-restore').onclick = () => $('restore-file').click();
   $('restore-file').onchange = e => { const f = e.target.files[0]; if (f) readFile(f, importBackup); e.target.value = ''; };
-  $('btn-reset-progress').onclick = () => { if (confirm('Alle Stufen auf 1 zurücksetzen? Wörter und Statistik bleiben.')) { progress = {}; store.set('progress', progress); roundDirty = true; renderAll(); toast('Lernstand zurückgesetzt.'); } };
-  $('btn-remove-seed').onclick = () => {
-    if (!confirm('Alle mitgelieferten Startwörter entfernen? Deine eigenen Wörter bleiben.')) return;
-    words.filter(w => w.seed).forEach(w => { delete progress[w.id]; delete active[w.id]; });
-    words = words.filter(w => !w.seed); saveAll(); roundDirty = true; renderAll(); toast('Startwörter entfernt.');
+  $('btn-reset-progress').onclick = async () => { if (await ask('Alle Stufen auf 1 zurücksetzen? Wörter und Statistik bleiben.', 'Zurücksetzen')) { progress = {}; store.set('progress', progress); roundDirty = true; renderAll(); toast('Lernstand zurückgesetzt.'); } };
+  $('btn-remove-seed').onclick = async () => {
+    if (!(await ask('Alle mitgelieferten Startwörter entfernen? Deine eigenen Wörter bleiben.', 'Entfernen'))) return;
+    const isSeed = w => w.seed || w.unit === 'Startwörter';
+    words.filter(isSeed).forEach(w => { delete progress[w.id]; delete active[w.id]; });
+    words = words.filter(w => !isSeed(w)); saveAll(); roundDirty = true; renderAll(); toast('Startwörter entfernt.');
   };
 }
 
