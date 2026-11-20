@@ -1,0 +1,9 @@
+{
+ "version": "3.3.0",
+ "datum": "2026-11-20",
+ "neu": [
+  "Update-Hinweis: Neue Versionen werden gemeldet, du entscheidest mit „Jetzt aktualisieren“ oder „Später“.",
+  "Neuer Knopf unter ⚙️ Mehr: „Nach neuer Version suchen“.",
+  "Kleinere Verbesserungen bei Meldungen ohne Internetverbindung."
+ ]
+}

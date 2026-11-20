@@ -228,6 +228,11 @@ label.field input,label.field select{margin-top:3px}
         <button class="mini-btn" id="btn-remove-seed">Startwörter entfernen</button>
       </div>
     </div>
+    <div class="panel">
+      <h3>App-Version</h3>
+      <p class="small" id="version-line"></p>
+      <button class="btn" id="btn-check-update">🔄 Nach neuer Version suchen</button>
+    </div>
     <p class="small" style="text-align:center" id="version-info"></p>
   </section>
 </div>
@@ -252,6 +257,17 @@ label.field input,label.field select{margin-top:3px}
     </div>
   </div>
 </div>
+<div id="upd" class="modal hidden">
+  <div class="modal-box">
+    <h3 id="upd-title">Neue Version verfügbar</h3>
+    <ul id="upd-list" class="small" style="padding-left:18px;margin:6px 0 10px;line-height:1.5"></ul>
+    <p class="small" style="margin:0 0 14px">✅ Deine Wörter und dein Lernstand bleiben erhalten.</p>
+    <div class="stack">
+      <button class="btn" id="upd-now" style="padding:16px">Jetzt aktualisieren</button>
+      <button class="btn btn-ghost" id="upd-later">Später</button>
+    </div>
+  </div>
+</div>
 <div id="ask" class="modal hidden">
   <div class="modal-box">
     <p id="ask-text" style="margin:0 0 14px;line-height:1.4"></p>
@@ -262,7 +278,7 @@ label.field input,label.field select{margin-top:3px}
 
 <script>
 'use strict';
-const CONFIG = {"appId": "englisch8", "title": "Englisch 8", "version": "3.2", "storagePrefix": "vt_k8_v3_", "legacy": {"prog": "kids_k8_v2_prog", "checked": "kids_k8_v2_checked", "stats": "kids_k8_v2_stats"}, "defaultMode": "mc_en_de", "defaultAccent": "us", "fileBase": "englisch8", "praise": ["Stark! 🚀", "Richtig! ✔", "Läuft! 🔥", "Sauber! 🎯"], "finishTitles": ["Stark gelöst! 🎯", "Runde durch! 🚀"]};
+const CONFIG = {"appId": "englisch8", "title": "Englisch 8", "version": "3.3.0", "storagePrefix": "vt_k8_v3_", "legacy": {"prog": "kids_k8_v2_prog", "checked": "kids_k8_v2_checked", "stats": "kids_k8_v2_stats"}, "defaultMode": "mc_en_de", "defaultAccent": "us", "fileBase": "englisch8", "praise": ["Stark! 🚀", "Richtig! ✔", "Läuft! 🔥", "Sauber! 🎯"], "finishTitles": ["Stark gelöst! 🎯", "Runde durch! 🚀"]};
 const SEED = [];
 const K = CONFIG.storagePrefix;
 const $ = id => document.getElementById(id);
@@ -344,12 +360,13 @@ function init() {
   document.title = CONFIG.title;
   $('app-title').textContent = CONFIG.title;
   $('version-info').textContent = CONFIG.title + ' · Version ' + CONFIG.version + ' · Alle Daten bleiben auf diesem Gerät.';
+  $('version-line').textContent = 'Installiert: Version ' + CONFIG.version + '. Updates werden automatisch gesucht, du entscheidest, wann sie eingespielt werden.';
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   setupVoices();
   bindEvents();
   renderAll();
   startRound();
-  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+  setupUpdates();
 }
 
 /* ---------- Anzeige ---------- */
@@ -851,6 +868,63 @@ function speak(text, lang, rate) {
   u.lang = lang; u.rate = rate || 0.9;
   const v = findVoice(lang); if (v) u.voice = v;
   speechSynthesis.speak(u);
+}
+
+/* ---------- Updates ---------- */
+let swReg = null, updDismissed = false, updRequested = false, lastCheck = 0, updWorker = null;
+function setupUpdates() {
+  $('btn-check-update').onclick = () => checkUpdate(true);
+  $('upd-now').onclick = applyUpdate;
+  $('upd-later').onclick = () => { updDismissed = true; $('upd').classList.add('hidden'); };
+  if (!('serviceWorker' in navigator) || !location.protocol.startsWith('http')) return;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!updRequested) return;          // erste Installation: nicht neu laden
+    updRequested = false; location.reload();
+  });
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    swReg = reg;
+    if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting, false);
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing; if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) showUpdate(nw, false);
+      });
+    });
+    checkUpdate(false);
+  }).catch(() => {});
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - lastCheck > 30 * 60 * 1000) checkUpdate(false);
+  });
+}
+async function checkUpdate(manual) {
+  lastCheck = Date.now();
+  if (!swReg) { if (manual) toast(navigator.onLine ? 'Update-Suche hier nicht möglich – bitte die installierte App verwenden.' : 'Keine Internetverbindung – bitte später noch einmal suchen.'); return; }
+  if (manual && swReg.waiting) { showUpdate(swReg.waiting, true); return; }
+  try { await swReg.update(); }
+  catch (e) { if (manual) toast('Keine Verbindung – bitte später noch einmal versuchen.'); return; }
+  if (!manual) return;
+  if (swReg.waiting) { showUpdate(swReg.waiting, true); return; }
+  if (swReg.installing) { toast('Neue Version wird geladen …'); updDismissed = false; return; }
+  toast('Aktuelle Version ' + CONFIG.version + ' – alles auf dem neuesten Stand ✔');
+}
+async function showUpdate(worker, force) {
+  updWorker = worker;
+  if (updDismissed && !force) return;
+  let info = null;
+  try { const r = await fetch('version.json', {cache: 'no-store'}); if (r.ok) info = await r.json(); } catch (e) {}
+  $('upd-title').textContent = 'Neue Version verfügbar' + (info && info.version ? ' (' + info.version + ')' : '');
+  const ul = $('upd-list'); ul.innerHTML = '';
+  ((info && Array.isArray(info.neu)) ? info.neu : []).forEach(t => ul.appendChild(el('li', '', String(t))));
+  ul.classList.toggle('hidden', !ul.children.length);
+  $('upd').classList.remove('hidden');
+}
+function applyUpdate() {
+  const w = updWorker || (swReg && swReg.waiting);
+  $('upd-now').disabled = true; $('upd-now').textContent = 'Wird aktualisiert …';
+  if (!w) { location.reload(); return; }
+  updRequested = true;
+  w.postMessage('SKIP_WAITING');
+  setTimeout(() => { if (updRequested) location.reload(); }, 4000);
 }
 
 /* ---------- Ereignisse ---------- */
